@@ -34,6 +34,31 @@ READ_BIT:
 HEX_DECODE:
     *Sets each hexbit to register
 
+
+*Subroutines:
+    
+*00                 
+*00                 MOVE
+*00                 MOVEA
+
+*01 
+*01001              MOVEM
+*0100               LEA
+*0110               Bcc
+*0100111010         JSR
+*0100111001110101   RTS
+
+*10
+*1011               CMP
+*1000               OR
+*1001               SUB
+
+*11
+*1100               ADD
+*1100               AND
+*1110               LSL
+*1110000            ASR    
+
 * Put variables and constants here
 
 DISPLAY_START_MESSAGE   DC.B    'CSS 422 Final Project',CR,LF,0
