@@ -28,6 +28,11 @@ START_MSG:
 
     SIMHALT ; halt simulator
 
+READ_BIT:
+    *Read first btye of word
+    
+HEX_DECODE:
+    *Sets each hexbit to register
 
 * Put variables and constants here
 
@@ -36,6 +41,7 @@ DISPLAY_START_ADDRESS   DC.B    'Starting Memory Location: ',0
 DISPLAY_END_ADDRESS     DC.B    'Ending Memory Location: ',0
 
     END    START        ; last line of source
+
 
 
 *~Font name~Courier New~
