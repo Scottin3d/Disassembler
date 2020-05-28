@@ -113,36 +113,48 @@ code0000       STOP        #$2700
 ** - stores ", " into the print buffer                              **
 ** - checks bits 5 - 3 (Ea mode) D3 [source]                        **
 ** - checks bits 2 - 0 (register number) D2 [source]                **
-** - 
+** - jumps to ea table                                              **
 **********************************************************************
 
 code0001       MOVE.L #$4D4F5645, (A4)+ ** Loads "MOVE" INTO PRINT_BUFFER
                MOVE.L #$2E420909, (A4)+ **Loads ".B" into the print_buffer 
+               
                CLR.L D2
+               
                MOVE.W D1, D2
-               AND.L #%0000111000000000, D2 ** checks the register number ***
+               AND.L #%0000000000000111, D2 ** checks the source reg number **
+
+               
                MOVE.W D1, D3
-               AND.L #%0000000111000000, D3 ** checks the addressing mode **
-               ASR.W #$8, D2 **shifts the bits to the right
-               ASR.W #$7, D3 ** shifts the bits to the right 
+               AND.L #%0000000000111000, D3 ** checks the source mode type **
+               ASR.W #$3, D3 ** shifts the bits to the right **
+               
                LEA ea_table, A3 ** loads ea_table for jmp **
                MULU #6,D3 ** gets the index of the jmp table **
                
                JSR 0(A3, D3) ** jumps to the Jump Table **
+               
                MOVE.W #$2C20, (A4)+
                
                CLR D2   ** clears registers for source reg and mode 
                CLR D3
-               AND.L #%0000000000000111, D2 ** checks the source reg number **
-               AND.L #%0000000000111000, D3 ** checks the source mode type **
-               ASR.W #$8, D2 ** shifts the bits to the right **
-               ASR.W #$7, D3 ** shifts the bits to the right **
+               
+               MOVE.W D1, D2
+               AND.L #%0000111000000000, D2 ** checks the register number ***
+               LSR.W #$8, D2 **shifts the bits to the right
+               LSR.B #$1, D2
+               
+               MOVE.W D1, D3
+               AND.L #%0000000111000000, D3 ** checks the addressing mode **
+               LSR.W #$6, D3 ** shifts the bits to the right 
+              
+               
                LEA ea_table, A3 ** loads the ea_table **
                MULU #6, D3 ** gets the index of the jump table **
                
                JSR 0(A3, D3) **jumps to the ea_table for source dissassembly **
                MOVE.W #$2000, (A4)+
-               JSR PRINT ** Prints the results **
+               JSR PRINT
                RTS ** Returns to sender **
                
 code0010       STOP        #$2700
@@ -187,12 +199,78 @@ eacode000       ADD.B #$30, D2              ** Adds the hexa value "0" to the re
                 MOVE.W D3, (A4)+            ** Appends the ea mode and register number to the print buffer
                 RTS                         ** Returns to Sender 
                                     
-eacode001       
+eacode001
+               ADD.B #$30, D2
+               CLR D3
+               MOVE.B #$41, D3
+               ASL.L #$8, D3
+               ADD.B D2, D3
+               MOVE.W D3, (A4)+
+               RTS       
 eacode010
+               ADD.B #$30, D2
+               CLR D3
+               MOVE.B #$28, D3
+               ASL.L #$8, D3
+               MOVE.B #$41, D3
+               ASL.L #$8, D3
+               MOVE.B D2, D3
+               ASL.L #$8, D3
+               MOVE.B #$29, D3
+               MOVE.L D3, (A4)+
+               RTS   
+
 eacode011
+               ADD.B #$30, D2
+               CLR D3
+               MOVE.B #$28, D3
+               ASL.L #$8, D3
+               MOVE.B #$41, D3
+               ASL.L #$8, D3
+               MOVE.B D2, D3
+               ASL.L #$8, D3
+               MOVE.B #$29, D3
+               MOVE.L D3, (A4)+              
+               MOVE.W #$2B20, (A4)+
+
+               RTS 
 eacode100
+               ADD.B #$30, D2
+               CLR D3
+               MOVE.B #$2D, D3
+               ASL.L #$8, D3
+               MOVE.B #$28, D3
+               ASL.L #$8, D3
+               MOVE.B #$41, D3
+               ASL.L #$8, D3
+               MOVE.B D2, D3
+               MOVE.L D3, (A4)+              
+               MOVE.W #$2920, (A4)+
+               RTS
 eacode101
+               ADD.B #$30, D2
+               CLR D3
+               MOVE.B #$28, D3
+               ASL.L #$8, D3
+               MOVE.B #$41, D3
+               ASL.L #$8, D3
+               MOVE.B D2, D3
+               ASL.L #$8, D3
+               MOVE.B #$29, D3
+               MOVE.L D3, (A4)+
+               RTS 
 eacode110
+               ADD.B #$30, D2
+               CLR D3
+               MOVE.B #$28, D3
+               ASL.L #$8, D3
+               MOVE.B #$41, D3
+               ASL.L #$8, D3
+               MOVE.B D2, D3
+               ASL.L #$8, D3
+               MOVE.B #$29, D3
+               MOVE.L D3, (A4)+
+               RTS 
 eacode111        
 
  
