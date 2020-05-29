@@ -4,6 +4,29 @@
 * Date       :
 * Description:
 *-----------------------------------------------------------
+*Register Use
+*For consistency, please utilize registers in the following way.
+*
+*D0 -
+*D1 -
+*D2 - copy of working address
+*D3 - utility register
+*D4 -
+*D5 - flag condition
+*D6 - counter
+*D7 -
+*
+*A0 - temp address holder
+*A1 - trap address
+*A2 - buffer address of decoded instruction
+*A3 -
+*A4 - starting address
+*A5 - ending address
+*A6 -
+*A7 -
+*-----------------------------------------------------------
+
+ 
  
 * Variables and EQUs
 start       EQU     $1000               *start address
@@ -15,6 +38,13 @@ badflag     EQU     0
 length      EQU     0
 task1       EQU     01                  *
 task2       EQU     02                  *
+printCount  EQU     10                  *number of lines printed to console before user input
+
+*trap outputs
+task0       EQU     00                  * output command
+task1       EQU     01                  * output command
+task2       EQU     02                  * output command
+task13      EQU     13                  * output command
 
 *-----------------------------------------------------------
 *beging program
@@ -26,20 +56,43 @@ main        BSR     CLEAR               *clear all registers
             LEA     buffer, A2          *set buffer for input
             MOVEA.L A2,A6 
             
-            BSR     U_INPUT
+main_input  BSR     U_INPUT
+            CMP.B   #$0, D5
+            BEQ     badInput             *bad flag, reinput 
             
+            
+main_prep   JSR     bufferPrep
+
+            MOVEA.L A4, A1              *print start
+            JSR     printinst                         
+
+            MOVEA.L A5, A1              *print end
+            JSR     printinst           
+            
+           
             BSR     END
 
 *-----------------------------------------------------------
 *subroutines
 *-----------------------------------------------------------
+*intro message display
 intro_msg
             MOVE.B  #13,D0
             LEA     intro,A1
             MOVE.W  i_length,D1
             TRAP    #15
 endIntro    RTS
-            
+
+*bad input error message display
+badInput
+            MOVE.B  #task0,D0
+            LEA     str_error, A1
+            MOVE.W  err_len, D1
+            TRAP    #15
+            MOVE.B  #badFlag,D5
+endBI       JSR     main
+          
+*clear all registers         
 CLEAR:
             CLR     D0
             CLR     D1
@@ -95,8 +148,10 @@ endInput    RTS
 
 ************************************************************
 ASCII2HEX:
-            MOVEM.L D0-D4,-(SP)         * save data registers to the stack
+            
+            MOVEM.L D0-D4,-(SP)         *save data registers to the stack
             JSR     CLEAR
+            MOVE.B  #$01,D5             *preset flag condition to good
             MOVE    #length,D6
 
 loop
@@ -157,7 +212,20 @@ endA2H
 END:
             SIMHALT             ; halt simulator
 
+************************************************************
+*printbuffer
+************************************************************
+bufferPrep  MOVEA.L A0, A2
 
+endBP       RTS
+
+
+printinst   
+            MOVE.B  #task13, D0
+            MOVE.W  #12,D1
+            TRAP    #15
+            RTS
+            
 *-----------------------------------------------------------
 *variables
 *-----------------------------------------------------------
@@ -170,9 +238,13 @@ s_len       dc.w    s_len-srt_addr
 end_addr    dc.b    'Enter ending address: $',0
 e_len       dc.w    e_len-end_addr
 
+str_error   DC.B    'Error: starting or ending address has error',0
+err_len     DC.W    err_len-str_error 
+
 buffer      dc.b    1
 
     END    START        ; last line of source
+
 
 *~Font name~Courier New~
 *~Font size~10~
