@@ -30,22 +30,28 @@
  
 * Variables and EQUs
 start       EQU     $1000               *start address
-stack       EQU     $A000               *stack address   
+stack       EQU     $A000               *stack address  
+ 
+
+minAdd      EQU     $00000000           *start of address space
+maxAdd      EQU     $00FFFFFF           *end of address space
+
 CR          EQU     $0D                 *carriage return
 LF          EQU     $0A                 *line feed
-goodflag    EQU     1
-badflag     EQU     0
-length      EQU     0
-task1       EQU     01                  *
-task2       EQU     02                  *
+
+goodflag    EQU     1                   *good flag condition
+badflag     EQU     0                   *bad flag condition
+length      EQU     0                   *
+
 printCount  EQU     10                  *number of lines printed to console before user input
 
-*trap outputs
-task0       EQU     00                  * output command
-task1       EQU     01                  * output command
-task2       EQU     02                  * output command
-task13      EQU     13                  * output command
-
+*TRAP tasks for preload
+task0       EQU     00                  *Display string at (A1), D1.W bytes long (max 255) with carriage return and line feed (CR, LF)
+task1       EQU     01                  *Display string at (A1), D1.W bytes long (max 255) without CR, LF
+task2       EQU     02                  *Read string from keyboard and store at (A1), NULL terminated, length retuned in D1.W (max 80)
+task3       EQU     03                  *Display signed number in D1.L in decimal in smallest field
+task13      EQU     13                  *Display the NULL terminated string at (A1) with CR, LF
+task14      EQU     14                  *Display the NULL terminated string at (A1) without CR, LF
 *-----------------------------------------------------------
 *beging program
 *-----------------------------------------------------------
@@ -56,21 +62,58 @@ main        BSR     CLEAR               *clear all registers
             LEA     buffer, A2          *set buffer for input
             MOVEA.L A2,A6 
             
-main_input  BSR     U_INPUT
-            CMP.B   #$0, D5
-            BEQ     badInput             *bad flag, reinput 
+            
+main_input  BSR     U_INPUT             *
+            CMP.B   #$0, D5             *
+            BEQ     badInput            *bad flag, reinput 
             
             
-main_prep   JSR     bufferPrep
+main_loop   JSR     bufferPrep          *prep buffer
+    
+            MOVE.B  #task14, D0         *
+            LEA     t_str_start, A1     *print start add test message     
+            TRAP    #15                 *
+            
+            MOVE.L  v_srt_add, D1       *
+            MOVE.B  #task3, D0          *print start add test value
+            TRAP    #15                 *
+            
+            MOVE.B  #task13, D0         *print carriage rturn
+            LEA     str_cr, A1          *
+            TRAP    #15                 *
+       
+            MOVE.B  #task14, D0         *print end add test message
+            LEA     t_str_end, A1         *    
+            TRAP    #15                 *
+  
+            MOVE.L  v_end_add, D1       *
+            MOVE.B  #task3, D0          *print end add test value
+            TRAP    #15                 *
+                 
 
-            MOVEA.L A4, A1              *print start
-            JSR     printinst                         
-
-            MOVEA.L A5, A1              *print end
-            JSR     printinst           
+*loop checking      
+            CMPA.L  A0, A5              * have we reached the end of our address range?
+            BLE     main_end  
+ 
+            ADDI    #1, D6              *add counter
+            CMP     #printcount, D6     *check loop progress
+            BNE     main_loop
+              
             
-           
-            BSR     END
+
+main_cont   MOVE.B  #task1, D0
+            LEA     str_cont, A1
+            MOVE.W  cont_len, D1
+            TRAP    #15
+            
+            MOVE.B  #task2,D0
+            TRAP    #15
+            CLR     D6                  *clear counter, reset loop
+            JMP     main_loop
+
+
+
+main_end    BSR     END
 
 *-----------------------------------------------------------
 *subroutines
@@ -118,8 +161,10 @@ U_INPUT:
             JSR     ASCII2HEX
             CMP.B   #$00,D5             *bad input?
             BEQ     endInput
+            MOVE.L  D7, v_srt_add       *store to varable
+            CLR     D7
             
-            MOVEA.L A0,A4         
+            MOVEA.L A0,A4       
             MOVE.B  #task1,D0
             LEA     end_addr,A1
             MOVE.W  e_len,D1         
@@ -130,12 +175,15 @@ U_INPUT:
             JSR     ASCII2HEX
             CMP.B   #$00,D5             *bad input?
             BEQ     endInput
-            
+            MOVE.L  D7, v_end_add        *store to varable
+            CLR     D7
            
            **********swap************
-            MOVEA.L A4,A3               *store starting into register
-            MOVEA.L A0,A4               *copy ending to A4
-            MOVEA.L A3,A0               *store starting in A0                    
+
+            MOVEA.L A0,A5               *store ending to 
+A5
+            *MOVEA.L A0,A4               *copy ending to A4
+            MOVEA.L A4,A0               *store starting in A0                    
 endInput    RTS
 
 ************************************************************
@@ -205,27 +253,41 @@ resume
 
 endA2H
             MOVE.L  D4,A0               *
+            MOVE.L  D4,D7               *move address to temp register
             CLR     D6                  *clear counter
             MOVEM.L (SP)+,D0-D4         *load data registers from stack      
             RTS                         *
 
-END:
-            SIMHALT             ; halt simulator
+
+
 
 ************************************************************
 *printbuffer
 ************************************************************
-bufferPrep  MOVEA.L A0, A2
+bufferPrep  MOVEA.L (A0)+, A2
 
 endBP       RTS
 
 
 printinst   
-            MOVE.B  #task13, D0
-            MOVE.W  #12,D1
+            MOVE.B  #14, D0
+            *MOVE.W  #12,D1
             TRAP    #15
             RTS
             
+************************************************************
+*Hex2ASCII 
+************************************************************
+Hex2ASCII   CMP.B   #$A,D6              * Confirm hex character?
+            BGE     letter              * Is it a letter or number?
+            ADDI.B  #$30,D6             * Convert decimal to ASCII
+            BRA     write2Buff          * save to good buffer
+letter      ADDI.B  #$37,D6
+write2Buff  MOVE.B  D6,(A2)+
+            RTS           
+            
+END:
+            SIMHALT             ; halt simulator            
 *-----------------------------------------------------------
 *variables
 *-----------------------------------------------------------
@@ -238,12 +300,29 @@ s_len       dc.w    s_len-srt_addr
 end_addr    dc.b    'Enter ending address: $',0
 e_len       dc.w    e_len-end_addr
 
-str_error   DC.B    'Error: starting or ending address has error',0
-err_len     DC.W    err_len-str_error 
+t_str_start dc.b    'The start address is: $',0
+t_start     dc.w    t_start-t_str_start
+
+t_str_end   dc.b    'The end address is: $',0
+t_end       dc.w    t_end-t_str_end
+
+str_error   dc.b    'Error: starting or ending address has error',0
+err_len     dc.w    err_len-str_error 
+
+str_cont    dc.b    'Press enter to continue.',0
+cont_len    dc.w    cont_len-str_cont
+
+str_cr      dc.b    '',0
 
 buffer      dc.b    1
 
+v_srt_add   ds.l    1               *store start address
+V_end_add   ds.l    1               *store end address
+
+
     END    START        ; last line of source
+
+
 
 
 *~Font name~Courier New~
