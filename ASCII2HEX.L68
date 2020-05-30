@@ -1,6 +1,6 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 05/30/20 11:37:35 AM
+Created On: 05/30/20 12:48:42 PM
 
 00000000                             1  *-----------------------------------------------------------
 00000000                             2  * Title      : Disassembler
@@ -62,316 +62,329 @@ Created On: 05/30/20 11:37:35 AM
 00000000                            58  *-----------------------------------------------------------
 00001000                            59              ORG     start
 00001000  6100 0048                 60              BSR     dis_intro_msg       *print intro message
-00001004  6100 00E0                 61  main        BSR     CLEAR               *clear all registers
-00001008  4FF9 0000A000             62              LEA     stack, SP           *load stack pointer
-0000100E  45F9 000012FE             63              LEA     buffer, A2          *set buffer for input
-00001014  2C4A                      64              MOVEA.L A2,A6 
-00001016                            65              
+00001004                            61              
+00001004  6100 00E0                 62  main        BSR     CLEAR               *clear all registers
+00001008  4FF9 0000A000             63              LEA     stack, SP           *load stack pointer
+0000100E  45F9 00001308             64              LEA     buffer, A2          *set buffer for input
+00001014  2C4A                      65              MOVEA.L A2,A6 
 00001016                            66              
-00001016  6100 00E0                 67  main_input  BSR     U_INPUT             *branch to input
-0000101A  BA3C 0000                 68              CMP.B   #$0, D5             *check if bad input
-0000101E  6700 003E                 69              BEQ     dis_badInput        *bad flag, reinput 
-00001022                            70              
+00001016                            67              
+00001016  6100 00E0                 68  main_input  BSR     U_INPUT             *branch to input
+0000101A  BA3C 0000                 69              CMP.B   #$0, D5             *check if bad input
+0000101E  6700 003E                 70              BEQ     dis_badInput        *bad flag, reinput 
 00001022                            71              
-00001022  4EB9 000010AC             72  main_test   JSR     dis_test            *display inputs
-00001028                            73  
-00001028                            74              
-00001028  4EB9 00001204             75  main_loop   JSR     bufferPrep          *prep buffer
-0000102E                            76  
-0000102E                            77  *loop checking      
-0000102E  BBC8                      78              CMPA.L  A0, A5              * have we reached the end of our address range?
-00001030  6F00 0014                 79              BLE     main_end  
-00001034                            80   
-00001034  5246                      81              ADDI    #1, D6              *add counter
-00001036  BC7C 000A                 82              CMP     #printcount, D6     *check loop progress
-0000103A  66EC                      83              BNE     main_loop
-0000103C                            84                
-0000103C                            85              
-0000103C                            86  
-0000103C  4EB9 0000108C             87  main_cont   JSR     dis_cont
-00001042  4EF8 1028                 88              JMP     main_loop
-00001046                            89  
+00001022                            72              
+00001022  4EB9 000010AC             73  main_test   JSR     dis_test            *display inputs
+00001028                            74  
+00001028                            75              
+00001028  4EB9 00001204             76  main_loop   JSR     BUFFER_PREP         *prep buffer
+0000102E                            77  
+0000102E                            78  *loop checking      
+0000102E  BBC8                      79              CMPA.L  A0, A5              * have we reached the end of our address range?
+00001030  6F00 0014                 80              BLE     main_end  
+00001034                            81   
+00001034  5246                      82              ADDI    #1, D6              *add counter
+00001036  BC7C 000A                 83              CMP     #printcount, D6     *check loop progress
+0000103A  66EC                      84              BNE     main_loop
+0000103C                            85                
+0000103C                            86              
+0000103C                            87  
+0000103C  4EB9 0000108C             88  main_cont   JSR     dis_cont
+00001042  4EF8 1028                 89              JMP     main_loop
 00001046                            90  
 00001046                            91  
-00001046  6100 01E2                 92  main_end    BSR     END
-0000104A                            93  
-0000104A                            94  *-----------------------------------------------------------
-0000104A                            95  *display subroutines
-0000104A                            96  *intro message, bad inputs, carriage return, enter2return, input test
-0000104A                            97  *-----------------------------------------------------------
-0000104A                            98  *intro message display
-0000104A                            99  ************************************************************
-0000104A                           100  dis_intro_msg
-0000104A  103C 000D                101              MOVE.B  #13,D0              *load task
-0000104E  43F9 0000122E            102              LEA     intro,A1            *load string
-00001054  3239 00001246            103              MOVE.W  i_length,D1         *load string length 
-0000105A  4E4F                     104              TRAP    #15                 *display
-0000105C  4E75                     105  endIntro    RTS                         *return
-0000105E                           106  
-0000105E                           107  *bad input error message display
-0000105E                           108  ************************************************************
-0000105E                           109  dis_badInput
-0000105E  103C 0000                110              MOVE.B  #task0,D0           *load task
-00001062  43F9 000012B0            111              LEA     str_error, A1       *load string
-00001068  3239 000012DC            112              MOVE.W  err_len, D1         *load string length
-0000106E  4E4F                     113              TRAP    #15                 *display
-00001070  1A3C 0000                114              MOVE.B  #badFlag,D5         *set flag condition to bad
-00001074  4EB8 1016                115  endBI       JSR     main_input          *return to main_input
-00001078                           116  
-00001078                           117  *dsiplay carriage return
-00001078                           118  ************************************************************
-00001078                           119  dis_cr
-00001078  103C 000D                120              MOVE.B  #task13, D0         *load task
-0000107C  43F9 000012FA            121              LEA     str_cr, A1          *load string
-00001082  3239 000012FC            122              MOVE.W  cr_len, D1          *load string length
-00001088  4E4F                     123              TRAP    #15                 *display
-0000108A  4E75                     124  end_cr      RTS                         *return
-0000108C                           125  
-0000108C                           126  *enter2return
-0000108C                           127  ************************************************************
-0000108C                           128  dis_cont   
-0000108C  103C 000E                129              MOVE.B  #task14, D0         *load task
-00001090  43F9 000012DE            130              LEA     str_cont, A1        *load string
-00001096  3239 000012F8            131              MOVE.W  cont_len, D1        *load string length
-0000109C  4E4F                     132              TRAP    #15                 *display
-0000109E                           133              
-0000109E  103C 0002                134              MOVE.B  #task2,D0           *load task
-000010A2  4E4F                     135              TRAP    #15                 *get input
-000010A4                           136              
-000010A4  12BC 0050                137              MOVE.B  #$50,(A1)           *reset A1
-000010A8                           138              
-000010A8  4246                     139              CLR     D6                  *clear counter, reset loop
-000010AA  4E75                     140  endDC       RTS                         *return
-000010AC                           141  
+00001046                            92  
+00001046  6100 01EC                 93  main_end    BSR     END
+0000104A                            94  
+0000104A                            95  *-----------------------------------------------------------
+0000104A                            96  *display subroutines
+0000104A                            97  *intro message, bad inputs, carriage return, enter2return, input test
+0000104A                            98  *-----------------------------------------------------------
+0000104A                            99  *intro message display
+0000104A                           100  ************************************************************
+0000104A                           101  dis_intro_msg
+0000104A  103C 000D                102              MOVE.B  #13,D0              *load task
+0000104E  43F9 00001238            103              LEA     intro,A1            *load string
+00001054  3239 00001250            104              MOVE.W  i_length,D1         *load string length 
+0000105A  4E4F                     105              TRAP    #15                 *display
+0000105C  4E75                     106  endIntro    RTS                         *return
+0000105E                           107  
+0000105E                           108  *bad input error message display
+0000105E                           109  ************************************************************
+0000105E                           110  dis_badInput
+0000105E  103C 0000                111              MOVE.B  #task0,D0           *load task
+00001062  43F9 000012BA            112              LEA     str_error, A1       *load string
+00001068  3239 000012E6            113              MOVE.W  err_len, D1         *load string length
+0000106E  4E4F                     114              TRAP    #15                 *display
+00001070  1A3C 0000                115              MOVE.B  #badFlag,D5         *set flag condition to bad
+00001074  4EB8 1016                116  endBI       JSR     main_input          *return to main_input
+00001078                           117  
+00001078                           118  *dsiplay carriage return
+00001078                           119  ************************************************************
+00001078                           120  dis_cr
+00001078  103C 000D                121              MOVE.B  #task13, D0         *load task
+0000107C  43F9 00001304            122              LEA     str_cr, A1          *load string
+00001082  3239 00001306            123              MOVE.W  cr_len, D1          *load string length
+00001088  4E4F                     124              TRAP    #15                 *display
+0000108A  4E75                     125  end_cr      RTS                         *return
+0000108C                           126  
+0000108C                           127  *enter2return
+0000108C                           128  ************************************************************
+0000108C                           129  dis_cont   
+0000108C  103C 000E                130              MOVE.B  #task14, D0         *load task
+00001090  43F9 000012E8            131              LEA     str_cont, A1        *load string
+00001096  3239 00001302            132              MOVE.W  cont_len, D1        *load string length
+0000109C  4E4F                     133              TRAP    #15                 *display
+0000109E                           134              
+0000109E  103C 0002                135              MOVE.B  #task2,D0           *load task
+000010A2  4E4F                     136              TRAP    #15                 *get input
+000010A4                           137              
+000010A4  12BC 0050                138              MOVE.B  #$50,(A1)           *reset A1
+000010A8                           139              
+000010A8  4246                     140              CLR     D6                  *clear counter, reset loop
+000010AA  4E75                     141  endDC       RTS                         *return
 000010AC                           142  
-000010AC                           143  *dsiplay input test
-000010AC                           144  ************************************************************ 
-000010AC                           145  dis_test
-000010AC  103C 000E                146              MOVE.B  #task14, D0         *
-000010B0  43F9 0000127E            147              LEA     t_str_start, A1     *print start add test message     
-000010B6  4E4F                     148              TRAP    #15                 *
-000010B8                           149              
-000010B8  2239 00001300            150              MOVE.L  v_srt_add, D1       *
-000010BE  103C 0003                151              MOVE.B  #task3, D0          *print start add test value
-000010C2  4E4F                     152              TRAP    #15                 *
-000010C4                           153              
-000010C4  4EB8 1078                154              JSR     dis_cr
-000010C8                           155         
-000010C8  103C 000E                156              MOVE.B  #task14, D0         *print end add test message
-000010CC  43F9 00001298            157              LEA     t_str_end, A1         *    
-000010D2  4E4F                     158              TRAP    #15                 *
-000010D4                           159    
-000010D4  2239 00001304            160              MOVE.L  v_end_add, D1       *
-000010DA  103C 0003                161              MOVE.B  #task3, D0          *print end add test value
-000010DE  4E4F                     162              TRAP    #15                 *
-000010E0                           163              
-000010E0  4EB8 1078                164              JSR     dis_cr
-000010E4  4E75                     165  endT        RTS
-000010E6                           166  
+000010AC                           143  
+000010AC                           144  *dsiplay input test
+000010AC                           145  ************************************************************ 
+000010AC                           146  dis_test     
+000010AC  103C 000E                147              MOVE.B  #task14, D0         *
+000010B0  43F9 00001288            148              LEA     t_str_start, A1     *print start add test message     
+000010B6  4E4F                     149              TRAP    #15                 *
+000010B8                           150              
+000010B8  2239 0000130A            151              MOVE.L  v_srt_add, D1       *
+000010BE  103C 0003                152              MOVE.B  #task3, D0          *print start add test value
+000010C2  4E4F                     153              TRAP    #15                 *
+000010C4                           154              
+000010C4  4EB8 1078                155              JSR     dis_cr
+000010C8                           156         
+000010C8  103C 000E                157              MOVE.B  #task14, D0         *print end add test message
+000010CC  43F9 000012A2            158              LEA     t_str_end, A1         *    
+000010D2  4E4F                     159              TRAP    #15                 *
+000010D4                           160    
+000010D4  2239 0000130E            161              MOVE.L  v_end_add, D1       *
+000010DA  103C 0003                162              MOVE.B  #task3, D0          *print end add test value
+000010DE  4E4F                     163              TRAP    #15                 *
+000010E0                           164              
+000010E0  4EB8 1078                165              JSR     dis_cr
+000010E4  4E75                     166  endT        RTS
 000010E6                           167  
-000010E6                           168  *-----------------------------------------------------------
-000010E6                           169  *helper subroutines
-000010E6                           170  *----------------------------------------------------------- 
-000010E6                           171  
-000010E6                           172  ************************************************************   
-000010E6                           173  *CLEAR
-000010E6                           174  *Description: Clears registers of values
-000010E6                           175  ************************************************************        
-000010E6                           176  CLEAR:
-000010E6  4240                     177              CLR     D0
-000010E8  4241                     178              CLR     D1
-000010EA  4242                     179              CLR     D2
-000010EC  4243                     180              CLR     D3
-000010EE  4244                     181              CLR     D4
-000010F0  4245                     182              CLR     D5
-000010F2  4246                     183              CLR     D6
-000010F4  4247                     184              CLR     D7
-000010F6  4E75                     185  endClear    RTS
-000010F8                           186  
-000010F8                           187  ************************************************************
-000010F8                           188  *U_INPUT
-000010F8                           189  *Description: Gets input address from user for program
-000010F8                           190  *D5 - Return Status
-000010F8                           191  *D7 - Temparary register to store address value
-000010F8                           192  *A0 - Working Address
-000010F8                           193  *A4 - Start Address
-000010F8                           194  *A5 - End Address
-000010F8                           195  ************************************************************
-000010F8                           196  U_INPUT:
-000010F8  103C 0001                197              MOVE.B  #task1,D0           *
-000010FC  43F9 00001248            198              LEA     srt_addr,A1         *
-00001102  3239 00001262            199              MOVE.W  s_len,D1            *
-00001108  4E4F                     200              TRAP    #15                 *
-0000110A  D3FC 00001262            201              ADDA.L  #s_len,A1           *
-00001110  103C 0002                202              MOVE.B  #task2,D0           *
-00001114  4E4F                     203              TRAP    #15                 *
-00001116  4EB9 00001168            204              JSR     ASCII2HEX
-0000111C  BA3C 0000                205              CMP.B   #$00,D5             *bad input?
-00001120  6700 0044                206              BEQ     endInput
-00001124  23C7 00001300            207              MOVE.L  D7, v_srt_add       *store to varable
-0000112A  4247                     208              CLR     D7
-0000112C                           209              
-0000112C  2848                     210              MOVEA.L A0,A4       
-0000112E  103C 0001                211              MOVE.B  #task1,D0
-00001132  43F9 00001264            212              LEA     end_addr,A1
-00001138  3239 0000127C            213              MOVE.W  e_len,D1         
-0000113E  4E4F                     214              TRAP    #15         
-00001140  D3FC 0000127C            215              ADDA.L  #e_len,A1
-00001146  103C 0002                216              MOVE.B  #task2,D0
-0000114A  4E4F                     217              TRAP    #15
-0000114C  4EB9 00001168            218              JSR     ASCII2HEX
-00001152  BA3C 0000                219              CMP.B   #$00,D5             *bad input?
-00001156  6700 000E                220              BEQ     endInput
-0000115A  23C7 00001304            221              MOVE.L  D7, v_end_add        *store to varable
-00001160  4247                     222              CLR     D7
-00001162                           223  
+000010E6                           168  
+000010E6                           169  *-----------------------------------------------------------
+000010E6                           170  *helper subroutines
+000010E6                           171  *----------------------------------------------------------- 
+000010E6                           172  
+000010E6                           173  ************************************************************   
+000010E6                           174  *CLEAR
+000010E6                           175  *Description: Clears registers of values
+000010E6                           176  ************************************************************        
+000010E6                           177  CLEAR:
+000010E6  4240                     178              CLR     D0
+000010E8  4241                     179              CLR     D1
+000010EA  4242                     180              CLR     D2
+000010EC  4243                     181              CLR     D3
+000010EE  4244                     182              CLR     D4
+000010F0  4245                     183              CLR     D5
+000010F2  4246                     184              CLR     D6
+000010F4  4247                     185              CLR     D7
+000010F6  4E75                     186  endClear    RTS
+000010F8                           187  
+000010F8                           188  ************************************************************
+000010F8                           189  *U_INPUT
+000010F8                           190  *Description: Gets input address from user for program
+000010F8                           191  *D5 - Return Status
+000010F8                           192  *D7 - Temparary register to store address value
+000010F8                           193  *A0 - Working Address
+000010F8                           194  *A4 - Start Address
+000010F8                           195  *A5 - End Address
+000010F8                           196  ************************************************************
+000010F8                           197  U_INPUT:
+000010F8  103C 0001                198              MOVE.B  #task1,D0           *
+000010FC  43F9 00001252            199              LEA     srt_addr,A1         *
+00001102  3239 0000126C            200              MOVE.W  s_len,D1            *
+00001108  4E4F                     201              TRAP    #15                 *
+0000110A  D3FC 0000126C            202              ADDA.L  #s_len,A1           *
+00001110  103C 0002                203              MOVE.B  #task2,D0           *
+00001114  4E4F                     204              TRAP    #15                 *
+00001116  4EB9 00001168            205              JSR     ASCII2HEX
+0000111C  BA3C 0000                206              CMP.B   #$00,D5             *bad input?
+00001120  6700 0044                207              BEQ     endInput
+00001124  23C7 0000130A            208              MOVE.L  D7, v_srt_add       *store to varable
+0000112A  4247                     209              CLR     D7
+0000112C                           210              
+0000112C  2848                     211              MOVEA.L A0,A4       
+0000112E  103C 0001                212              MOVE.B  #task1,D0
+00001132  43F9 0000126E            213              LEA     end_addr,A1
+00001138  3239 00001286            214              MOVE.W  e_len,D1         
+0000113E  4E4F                     215              TRAP    #15         
+00001140  D3FC 00001286            216              ADDA.L  #e_len,A1
+00001146  103C 0002                217              MOVE.B  #task2,D0
+0000114A  4E4F                     218              TRAP    #15
+0000114C  4EB9 00001168            219              JSR     ASCII2HEX
+00001152  BA3C 0000                220              CMP.B   #$00,D5             *bad input?
+00001156  6700 000E                221              BEQ     endInput
+0000115A  23C7 0000130E            222              MOVE.L  D7, v_end_add        *store to varable
+00001160  4247                     223              CLR     D7
 00001162                           224  
-00001162  2A48                     225              MOVEA.L A0,A5               *store ending to A5
-00001164  204C                     226              MOVEA.L A4,A0               *store starting in A0  
-00001166                           227                    
-00001166  4E75                     228  endInput    RTS
-00001168                           229  
-00001168                           230  ************************************************************
-00001168                           231  *ASCII2HEX 
-00001168                           232  *Description: Converts an ASCII character to HEX - see flowchart for logic
-00001168                           233  *D3 - Placeholder for current ascii byte
-00001168                           234  *D4 - Translated address
-00001168                           235  *D5 - Return status
-00001168                           236  *D6 - Counter (6)
-00001168                           237  *D7 - Temparary register to store address value
-00001168                           238  *A0 - Stored address at end of subroutine
-00001168                           239  ************************************************************
-00001168                           240  ASCII2HEX:
-00001168                           241              
-00001168  48E7 F800                242              MOVEM.L D0-D4,-(SP)         *save data registers to the stack
-0000116C  4EB8 10E6                243              JSR     CLEAR
-00001170  1A3C 0001                244              MOVE.B  #$01,D5             *preset flag condition to good
-00001174  3C3C 0000                245              MOVE    #length,D6
-00001178                           246  
-00001178                           247  loop
-00001178  1619                     248              MOVE.B  (A1)+,D3            *
-0000117A  B63C 0030                249              CMP.B   #$30,D3             *byte < 30??
-0000117E  6D00 0056                250              BLT     error               *
-00001182                           251              
-00001182  B63C 003A                252              CMP.B   #$3A,D3             *byte < 3A??
-00001186  6D00 002A                253              BLT     num2hex             *
-0000118A                           254              
-0000118A  B63C 0041                255              CMP.B   #$41,D3             *byte < 41??
-0000118E  6D00 0046                256              BLT     error               *
-00001192                           257              
-00001192  B63C 0047                258              CMP.B   #$47,D3             *byte < 47?
-00001196  6D00 0026                259              BLT     upper2hex           *
-0000119A                           260              
-0000119A  B63C 0061                261              CMP.B   #$61,D3             *byte < 61??
-0000119E  6D00 0036                262              BLT     error               *
-000011A2                           263              
-000011A2  B63C 0067                264              CMP.B   #$67,D3             *byte < 67??
-000011A6  6D00 0022                265              BLT     lower2hex           *
-000011AA                           266              
-000011AA  B63C 0066                267              CMP.B   #$66,D3             *byte > 66??
-000011AE  6E00 0026                268              BGT     error               *
-000011B2                           269  
-000011B2                           270  num2hex
-000011B2  0403 0030                271              SUBI.B  #$30,D3             *subracthex value of 0 to get correct value of input
-000011B6  D803                     272              ADD.B   D3,D4               *
-000011B8  4EF9 000011E0            273              JMP     resume              *return to top
-000011BE                           274              
-000011BE                           275  upper2hex
-000011BE  0403 0037                276              SUBI.B  #$37,D3             *subracthex value of A to get correct value of input
-000011C2  D803                     277              ADD.B   D3,D4               *
-000011C4  4EF9 000011E0            278              JMP     resume              *return to top
-000011CA                           279              
-000011CA                           280  lower2hex
-000011CA  0403 0057                281              SUBI.B  #$57,D3             *subracthex value of a to get correct value of input
-000011CE  D803                     282              ADD.B   D3,D4               *
-000011D0  4EF9 000011E0            283              JMP     resume              *return to top
-000011D6                           284  error
-000011D6  1A3C 0000                285              MOVE.B  #$00,D5             *flag as bad input and return
-000011DA  4EF9 000011F8            286              JMP     endA2H              *return to top
-000011E0                           287  resume
-000011E0  5246                     288              ADD     #1,D6               *increment length counter
-000011E2  BC7C 0006                289              CMP     #6,D6               *check if done
-000011E6  6700 0010                290              BEQ     endA2H              *
-000011EA  0C11 0000                291              CMP.B   #$00,(A1)           *end of string??
-000011EE  6700 0008                292              BEQ     endA2H              *
-000011F2  E984                     293              ASL.L   #4,D4               *shiftleft by 4 bits to get next value            
-000011F4  4EF8 1178                294              JMP     loop                *return to top
-000011F8                           295  
-000011F8                           296  endA2H
-000011F8  2044                     297              MOVE.L  D4,A0               *
-000011FA  2E04                     298              MOVE.L  D4,D7               *move address to temp register
-000011FC  4246                     299              CLR     D6                  *clear counter
-000011FE  4CDF 001F                300              MOVEM.L (SP)+,D0-D4         *load data registers from stack      
-00001202  4E75                     301              RTS                         *
-00001204                           302  
+00001162                           225  
+00001162  2A48                     226              MOVEA.L A0,A5               *store ending to A5
+00001164  204C                     227              MOVEA.L A4,A0               *store starting in A0  
+00001166                           228                    
+00001166  4E75                     229  endInput    RTS
+00001168                           230  
+00001168                           231  ************************************************************
+00001168                           232  *ASCII2HEX 
+00001168                           233  *Description: Converts an ASCII character to HEX - see flowchart for logic
+00001168                           234  *D3 - Placeholder for current ascii byte
+00001168                           235  *D4 - Translated address
+00001168                           236  *D5 - Return status
+00001168                           237  *D6 - Counter (6)
+00001168                           238  *D7 - Temparary register to store address value
+00001168                           239  *A0 - Stored address at end of subroutine
+00001168                           240  ************************************************************
+00001168                           241  ASCII2HEX:
+00001168                           242              
+00001168  48E7 F800                243              MOVEM.L D0-D4,-(SP)         *save data registers to the stack
+0000116C  4EB8 10E6                244              JSR     CLEAR
+00001170  1A3C 0001                245              MOVE.B  #$01,D5             *preset flag condition to good
+00001174  3C3C 0000                246              MOVE    #length,D6
+00001178                           247  
+00001178                           248  loop
+00001178  1619                     249              MOVE.B  (A1)+,D3            *
+0000117A  B63C 0030                250              CMP.B   #$30,D3             *byte < 30??
+0000117E  6D00 0056                251              BLT     error               *
+00001182                           252              
+00001182  B63C 003A                253              CMP.B   #$3A,D3             *byte < 3A??
+00001186  6D00 002A                254              BLT     num2hex             *
+0000118A                           255              
+0000118A  B63C 0041                256              CMP.B   #$41,D3             *byte < 41??
+0000118E  6D00 0046                257              BLT     error               *
+00001192                           258              
+00001192  B63C 0047                259              CMP.B   #$47,D3             *byte < 47?
+00001196  6D00 0026                260              BLT     upper2hex           *
+0000119A                           261              
+0000119A  B63C 0061                262              CMP.B   #$61,D3             *byte < 61??
+0000119E  6D00 0036                263              BLT     error               *
+000011A2                           264              
+000011A2  B63C 0067                265              CMP.B   #$67,D3             *byte < 67??
+000011A6  6D00 0022                266              BLT     lower2hex           *
+000011AA                           267              
+000011AA  B63C 0066                268              CMP.B   #$66,D3             *byte > 66??
+000011AE  6E00 0026                269              BGT     error               *
+000011B2                           270  
+000011B2                           271  num2hex
+000011B2  0403 0030                272              SUBI.B  #$30,D3             *subracthex value of 0 to get correct value of input
+000011B6  D803                     273              ADD.B   D3,D4               *
+000011B8  4EF9 000011E0            274              JMP     resume              *return to top
+000011BE                           275              
+000011BE                           276  upper2hex
+000011BE  0403 0037                277              SUBI.B  #$37,D3             *subracthex value of A to get correct value of input
+000011C2  D803                     278              ADD.B   D3,D4               *
+000011C4  4EF9 000011E0            279              JMP     resume              *return to top
+000011CA                           280              
+000011CA                           281  lower2hex
+000011CA  0403 0057                282              SUBI.B  #$57,D3             *subracthex value of a to get correct value of input
+000011CE  D803                     283              ADD.B   D3,D4               *
+000011D0  4EF9 000011E0            284              JMP     resume              *return to top
+000011D6                           285  error
+000011D6  1A3C 0000                286              MOVE.B  #$00,D5             *flag as bad input and return
+000011DA  4EF9 000011F8            287              JMP     endA2H              *return to top
+000011E0                           288  resume
+000011E0  5246                     289              ADD     #1,D6               *increment length counter
+000011E2  BC7C 0006                290              CMP     #6,D6               *check if done
+000011E6  6700 0010                291              BEQ     endA2H              *
+000011EA  0C11 0000                292              CMP.B   #$00,(A1)           *end of string??
+000011EE  6700 0008                293              BEQ     endA2H              *
+000011F2  E984                     294              ASL.L   #4,D4               *shiftleft by 4 bits to get next value            
+000011F4  4EF8 1178                295              JMP     loop                *return to top
+000011F8                           296  
+000011F8                           297  endA2H
+000011F8  2044                     298              MOVE.L  D4,A0               *
+000011FA  2E04                     299              MOVE.L  D4,D7               *move address to temp register
+000011FC  4246                     300              CLR     D6                  *clear counter
+000011FE  4CDF 001F                301              MOVEM.L (SP)+,D0-D4         *load data registers from stack      
+00001202  4E75                     302              RTS                         *
 00001204                           303  
 00001204                           304  
 00001204                           305  
-00001204                           306  ************************************************************
-00001204                           307  *BUFFERPREP
-00001204                           308  ************************************************************
-00001204                           309  BUFFERPREP:  
-00001204  4EB9 0000120E            310              JSR     printinst   
-0000120A  2458                     311              MOVEA.L (A0)+, A2
-0000120C                           312  
-0000120C  4E75                     313  endBP       RTS
-0000120E                           314  
+00001204                           306  
+00001204                           307  ************************************************************
+00001204                           308  *BUFFER_PREP
+00001204                           309  ************************************************************
+00001204                           310  BUFFER_PREP:  
+00001204  244E                     311              MOVEA.L A6,A2         
+00001206                           312              *BSR     BUFFER_FILL
+00001206  4EB9 00001210            313              JSR     printinst   
+0000120C  2458                     314              MOVEA.L (A0)+, A2
 0000120E                           315  
-0000120E                           316  printinst   
-0000120E  4240                     317              CLR     D0
-00001210  4241                     318              CLR     D1
-00001212  23C8 00001308            319              MOVE.L  A0, v_test
-00001218  103C 0003                320              MOVE.B  #task3, D0
-0000121C  2239 00001308            321              MOVE.L  v_test, D1
-00001222  4E4F                     322              TRAP    #15
-00001224                           323              
-00001224  4EB8 1078                324              JSR     dis_cr
-00001228                           325              
-00001228  4E75                     326  endPI       RTS
-0000122A                           327                         
-0000122A                           328  
-0000122A                           329  ************************************************************
-0000122A                           330  *END
-0000122A                           331  *Description: Ends program
-0000122A                           332  ************************************************************          
-0000122A                           333  END:
-0000122A  FFFF FFFF                334              SIMHALT              
-0000122E                           335           
-0000122E                           336  *-----------------------------------------------------------
-0000122E                           337  *variables
-0000122E                           338  *-----------------------------------------------------------
-0000122E= 45 61 73 79 36 38 ...    339  intro       dc.b    'Easy68k Disassembler',0,CR,LF
-00001246= 0018                     340  i_length    dc.w    i_length-intro
-00001248                           341  
-00001248= 45 6E 74 65 72 20 ...    342  srt_addr    dc.b    'Enter starting address: $',0
-00001262= 001A                     343  s_len       dc.w    s_len-srt_addr
-00001264                           344  
-00001264= 45 6E 74 65 72 20 ...    345  end_addr    dc.b    'Enter ending address: $',0
-0000127C= 0018                     346  e_len       dc.w    e_len-end_addr
-0000127E                           347  
-0000127E= 54 68 65 20 73 74 ...    348  t_str_start dc.b    'The start address is: $',0
-00001296= 0018                     349  t_start     dc.w    t_start-t_str_start
-00001298                           350  
-00001298= 54 68 65 20 65 6E ...    351  t_str_end   dc.b    'The end address is: $',0
-000012AE= 0016                     352  t_end       dc.w    t_end-t_str_end
-000012B0                           353  
-000012B0= 45 72 72 6F 72 3A ...    354  str_error   dc.b    'Error: starting or ending address has error',0
-000012DC= 002C                     355  err_len     dc.w    err_len-str_error 
-000012DE                           356  
-000012DE= 50 72 65 73 73 20 ...    357  str_cont    dc.b    'Press enter to continue.',0
-000012F8= 001A                     358  cont_len    dc.w    cont_len-str_cont
-000012FA                           359  
-000012FA= 00                       360  str_cr      dc.b    '',0
-000012FC= 0002                     361  cr_len      dc.w    cr_len-str_cr
-000012FE                           362  
-000012FE= 01                       363  buffer      dc.b    1
-000012FF                           364  
-00001300                           365  v_srt_add   ds.l    1               *store start address
-00001304                           366  v_end_add   ds.l    1               *store end address
-00001308                           367  v_test      ds.l    1               *start a temp value
-0000130C                           368  
-0000130C                           369  
-0000130C                           370      END    START        ; last line of source
+0000120E  4E75                     316  endBP       RTS
+00001210                           317  
+00001210                           318  
+00001210                           319  printinst   
+00001210  4240                     320              CLR     D0
+00001212  4241                     321              CLR     D1
+00001214  23C8 00001312            322              MOVE.L  A0, v_test
+0000121A  103C 0003                323              MOVE.B  #task3, D0
+0000121E  2239 00001312            324              MOVE.L  v_test, D1
+00001224  4E4F                     325              TRAP    #15
+00001226                           326              
+00001226  4EB8 1078                327              JSR     dis_cr
+0000122A                           328              
+0000122A  4E75                     329  endPI       RTS
+0000122C                           330                         
+0000122C                           331  
+0000122C                           332  
+0000122C                           333  ************************************************************
+0000122C                           334  *BUFFER_FILL
+0000122C                           335  *Description: Fills the buffer with the current address
+0000122C                           336  ************************************************************
+0000122C                           337  BUFFER_FILL:
+0000122C  224A                     338              MOVEA.L A2, A1
+0000122E  14FC 0009                339              MOVE.B  #$09,(A2)+                                   
+00001232  4E75                     340  endFL       RTS
+00001234                           341  
+00001234                           342  ************************************************************
+00001234                           343  *END
+00001234                           344  *Description: Ends program
+00001234                           345  ************************************************************          
+00001234                           346  END:
+00001234  FFFF FFFF                347              SIMHALT              
+00001238                           348           
+00001238                           349  *-----------------------------------------------------------
+00001238                           350  *variables
+00001238                           351  *-----------------------------------------------------------
+00001238= 45 61 73 79 36 38 ...    352  intro       dc.b    'Easy68k Disassembler',0,CR,LF
+00001250= 0018                     353  i_length    dc.w    i_length-intro
+00001252                           354  
+00001252= 45 6E 74 65 72 20 ...    355  srt_addr    dc.b    'Enter starting address: $',0
+0000126C= 001A                     356  s_len       dc.w    s_len-srt_addr
+0000126E                           357  
+0000126E= 45 6E 74 65 72 20 ...    358  end_addr    dc.b    'Enter ending address: $',0
+00001286= 0018                     359  e_len       dc.w    e_len-end_addr
+00001288                           360  
+00001288= 54 68 65 20 73 74 ...    361  t_str_start dc.b    'The start address is: $',0
+000012A0= 0018                     362  t_start     dc.w    t_start-t_str_start
+000012A2                           363  
+000012A2= 54 68 65 20 65 6E ...    364  t_str_end   dc.b    'The end address is: $',0
+000012B8= 0016                     365  t_end       dc.w    t_end-t_str_end
+000012BA                           366  
+000012BA= 45 72 72 6F 72 3A ...    367  str_error   dc.b    'Error: starting or ending address has error',0
+000012E6= 002C                     368  err_len     dc.w    err_len-str_error 
+000012E8                           369  
+000012E8= 50 72 65 73 73 20 ...    370  str_cont    dc.b    'Press enter to continue.',0
+00001302= 001A                     371  cont_len    dc.w    cont_len-str_cont
+00001304                           372  
+00001304= 00                       373  str_cr      dc.b    '',0
+00001306= 0002                     374  cr_len      dc.w    cr_len-str_cr
+00001308                           375  
+00001308= 01                       376  buffer      dc.b    1
+00001309                           377  
+0000130A                           378  v_srt_add   ds.l    1               *store start address
+0000130E                           379  v_end_add   ds.l    1               *store end address
+00001312                           380  v_test      ds.l    1               *start a temp value
+00001316                           381  
+00001316                           382  
+00001316                           383      END    START        ; last line of source
 
 No errors detected
 No warnings generated
@@ -382,35 +395,37 @@ Symbol-name         Value
 -------------------------
 ASCII2HEX           1168
 BADFLAG             0
-BUFFER              12FE
-BUFFERPREP          1204
+BUFFER              1308
+BUFFER_FILL         122C
+BUFFER_PREP         1204
 CLEAR               10E6
-CONT_LEN            12F8
+CONT_LEN            1302
 CR                  D
-CR_LEN              12FC
+CR_LEN              1306
 DIS_BADINPUT        105E
 DIS_CONT            108C
 DIS_CR              1078
 DIS_INTRO_MSG       104A
 DIS_TEST            10AC
-END                 122A
+END                 1234
 ENDA2H              11F8
 ENDBI               1074
-ENDBP               120C
+ENDBP               120E
 ENDCLEAR            10F6
 ENDDC               10AA
+ENDFL               1232
 ENDINPUT            1166
 ENDINTRO            105C
-ENDPI               1228
+ENDPI               122A
 ENDT                10E4
-END_ADDR            1264
+END_ADDR            126E
 END_CR              108A
 ERROR               11D6
-ERR_LEN             12DC
-E_LEN               127C
+ERR_LEN             12E6
+E_LEN               1286
 GOODFLAG            1
-INTRO               122E
-I_LENGTH            1246
+INTRO               1238
+I_LENGTH            1250
 LENGTH              0
 LF                  A
 LOOP                1178
@@ -425,27 +440,27 @@ MAXADD              FFFFFF
 MINADD              0
 NUM2HEX             11B2
 PRINTCOUNT          A
-PRINTINST           120E
+PRINTINST           1210
 RESUME              11E0
-SRT_ADDR            1248
+SRT_ADDR            1252
 STACK               A000
 START               1000
-STR_CONT            12DE
-STR_CR              12FA
-STR_ERROR           12B0
-S_LEN               1262
+STR_CONT            12E8
+STR_CR              1304
+STR_ERROR           12BA
+S_LEN               126C
 TASK0               0
 TASK1               1
 TASK13              D
 TASK14              E
 TASK2               2
 TASK3               3
-T_END               12AE
-T_START             1296
-T_STR_END           1298
-T_STR_START         127E
+T_END               12B8
+T_START             12A0
+T_STR_END           12A2
+T_STR_START         1288
 UPPER2HEX           11BE
 U_INPUT             10F8
-V_END_ADD           1304
-V_SRT_ADD           1300
-V_TEST              1308
+V_END_ADD           130E
+V_SRT_ADD           130A
+V_TEST              1312

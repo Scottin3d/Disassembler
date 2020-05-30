@@ -143,15 +143,12 @@ endDC       RTS                         *return
 
 *dsiplay input test
 ************************************************************ 
-dis_test    
-            MOVE.L  v_srt_add, D6
-            BSR     Hex2ASCII   
+dis_test     
             MOVE.B  #task14, D0         *
             LEA     t_str_start, A1     *print start add test message     
             TRAP    #15                 *
             
-            MOVE.L  (A2), D1
-            *MOVE.L  v_srt_add, D1       *
+            MOVE.L  v_srt_add, D1       *
             MOVE.B  #task3, D0          *print start add test value
             TRAP    #15                 *
             
@@ -339,58 +336,9 @@ endPI       RTS
 ************************************************************
 BUFFER_FILL:
             MOVEA.L A2, A1
-            JSR     getLong
             MOVE.B  #$09,(A2)+                                   
 endFL       RTS
 
-getLong     JSR     cmdSh1              * Clear D6 and load value for shift
-            MOVE.B  #12,D4         * Load shifter w/12
-            JSR     cmdSh2              * Shift
-            MOVE.B  #08,D4          * Load shifter w/8
-            JSR     cmdSh2              * Shift
-            MOVE.B  #04,D4          * Load shifter w/4
-            JSR     cmdSh2              * Shift
-            MOVE.B  #0,D4
-            JSR     cmdSh4              * Shift
-            MOVE.B  #12,D4         * Load shifter w/12
-            JSR     cmdSh4              * Shift
-            MOVE.B  #08,D4          * Load shifter w/8
-            JSR     cmdSh4              * Shift
-            MOVE.B  #04,D4          * Load shifter w/4
-            JSR     cmdSh4              * Shift
-            MOVE.B  #0,D4               * Load shifter
-            LSR.L   D4,D6               * Shift
-            ANDI.L  #$0000000F,D6       * Isolate last bit
-            JSR     Hex2ASCII           * Place value in D6 into buffer
-
-cmdSh1      MOVEQ   #$0,D6              * Clear D6
-            MOVE.L  A0,D6               * Load current address to print
-            SWAP    D6                  * Swap high and low word
-            RTS
-
-cmdSh2      LSR.L   D4,D6               * Shift
-            ANDI.L  #$0000000F,D6       * Isolate last bit
-            JSR     Hex2ASCII           * Place value in D6 into buffer
-            JSR     cmdSh1              * Reset D6 for next shift
-            RTS
-
-cmdSh3      MOVEQ   #$0,D6              * Clear D6
-            MOVE.L  A0,D6               * Load current address to print
-            RTS
-            
-cmdSh4      LSR.L   D4,D6               * Shift
-            ANDI.L  #$0000000F,D6       * Isolate last bit
-            JSR     Hex2ASCII           * Place value in D6 into buffer
-            JSR     cmdSh3              * Reset D6 for next shift
-            RTS
-            
-Hex2ASCII   CMP.B   #$A,D6              * Confirm hex character?
-            BGE     letter              * Is it a letter or number?
-            ADDI.B  #$30,D6             * Convert decimal to ASCII
-            BRA     write2Buff          * save to good buffer
-letter      ADDI.B  #$37,D6
-write2Buff  MOVE.B  D6,(A2)+
-            RTS
 ************************************************************
 *END
 *Description: Ends program
