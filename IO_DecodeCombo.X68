@@ -309,7 +309,6 @@ endA2H
 ************************************************************
 BUFFER_PREP:  
             MOVEA.L A6,A2         
-            *BSR     BUFFER_FILL
             JSR     printinst   
             MOVEA.L (A0)+, A2
 
@@ -317,16 +316,16 @@ endBP       RTS
 
 
 printinst   
-            CLR     D0
-            CLR     D1
-            MOVE.L  A0, v_test
-            MOVE.B  #task3, D0
-            MOVE.L  v_test, D1
-            TRAP    #15
+            CLR         D0
+            CLR         D1
+            MOVE.L      A0, v_test
+            MOVE.B      #task3, D0
+            MOVE.L      v_test, D1
+            TRAP        #15
             
-            JSR     dis_cr
+            JSR         dis_cr
             
-endPI       RTS
+end_pi      RTS
                        
 
 
@@ -335,9 +334,10 @@ endPI       RTS
 *Description: Fills the buffer with the current address
 ************************************************************
 BUFFER_FILL:
-            MOVEA.L A2, A1
-            MOVE.B  #$09,(A2)+                                   
+            MOVEA.L     A2, A1
+            MOVE.B      #$09,(A2)+                                   
 endFL       RTS
+
 
 ************************************************************
 *END
@@ -374,6 +374,7 @@ str_cr      dc.b    '',0
 cr_len      dc.w    cr_len-str_cr
 
 buffer      dc.b    1
+print_stack ds.b    8
 
 v_srt_add   ds.l    1               *store start address
 v_end_add   ds.l    1               *store end address
@@ -381,6 +382,7 @@ v_test      ds.l    1               *start a temp value
 
 
     END    START        ; last line of source
+
 
 
 

@@ -11,11 +11,12 @@ Project Diagram: https://drive.google.com/open?id=1ZPQ33-BFiRYbSNXN15DFX_wUENFzl
 # (2) Documentation
 ### Program Description
 This program is written in Motorola 68000 assembly language (M68k), and its purpose is to disassemble data back into human readable opcodes and effective addresses.  
-A disassembler (also called an inverse assembler) should do the following:    
+### A disassembler (also called an inverse assembler) should do the following:    
 * Scan a section of memory and attempt to convert the memory’s contents to a listing of valid assembly language instructions  
 * Most disassemblers cannot recreate symbolic, or label information  
-* Disassemblers can be easily fooled by not starting on an instruction boundary  
-How it works:  
+* Disassemblers can be easily fooled by not starting on an instruction boundary 
+ 
+### How it works:  
 * Program parses the op-code word of the instruction and then decides how many additional words of memory need to be read in order to complete the instruction  
 * If necessary, reads additional instruction words  
 * Prints out the complete instruction in ASCII-readable format  
