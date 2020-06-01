@@ -49,7 +49,7 @@ intro_msg
 endIntro    RTS
 
 GET_WORD
-            MOVE.W (A0), D1
+            MOVE.W (A0)+, D1
 ENDGET_WORD RTS
 
 MAIN_LOOP
@@ -159,7 +159,20 @@ code0001       MOVE.L #$4D4F5645, (A4)+ ** Loads "MOVE" INTO PRINT_BUFFER
                
 code0010       STOP        #$2700
 code0011       STOP        #$2700
-code0100       STOP        #$2700
+code0100       
+                CLR.L D2
+                MOVE.W D1, D2
+                MOVE.W D2, D3
+                AND.W #%0000000111000000, D3
+                ASR #$6, D3
+                LEA code0100L1_table, A3
+                MULU #6, D3
+                
+                JSR 0(A3, D3)
+                MOVE.W #$2000, (A4)+
+                JSR PRINT
+                RTS
+
 code0101       STOP        #$2700
 code0110       STOP        #$2700
 code0111       STOP        #$2700
@@ -172,6 +185,248 @@ code1101       STOP        #$2700
 code1110       STOP        #$2700
 code1111       STOP        #$2700
 
+code0100L1_table   
+               JMP         error_inst **000
+               JMP         RTSource   **001
+               JMP         code0100L2 **010
+               JMP         MOVEmem ** 011
+               JMP         error_inst **100
+               JMP         error_inst **101
+               JMP         error_inst **110
+               JMP         LEadd **111
+
+
+code0100L2      CLR.L D2
+                CLR.L D3
+                LEA code0100L2_table, A3
+                MOVE.L D1, D2
+                MOVE.L D1, D3
+                
+                AND.W #%0000001000000000, D3
+                ASR.L #$8, D3
+                ASR.L #$1, D3
+                MULU #$6, D3
+                
+                JSR 0(A3, D3)
+                RTS
+
+code0100L2_table
+               JMP MOVEmem 
+               JMP JSRoutine
+               
+error_inst          STOP #$2700
+
+MOVEmem     
+                CLR D2
+                CLR D3
+                MOVE.W D1, D2
+                MOVE.W D2, D3
+                MOVE.L #$4D4F5645, (A4)+ ** Loads "MOVE" into print buffer 
+                MOVE.W #$4D2E, (A4)+ ** Loads M." into print buffer
+                AND.W #%0000000001000000, D3
+                ASR.W #$6, D3
+                MULU #$6, D3
+                LEA MOVEmemSize_table, A3
+                JSR 0(A3, D3)
+                RTS
+                
+                
+MOVEmemSize_table
+                JSR MOVEmem_word
+                JSR MOVEmem_long
+                RTS
+                
+MOVEmem_word
+                CLR D2
+                CLR D3
+                MOVE.W #$5709, (A4)+ ** Loads "W\T" into the print buffer
+                MOVE D1, D2
+                MOVE D2, D3
+                AND.W #%0000010000000000, D3 **Checks the direction **
+                ASR.W #$8, D3
+                ASR.W #$2, D3
+                MULU #$6, D3
+                LEA MOVEmem_table, A3
+                JSR 0(A3, D3)
+                RTS
+
+MOVEmem_long
+                CLR D2
+                CLR D3
+                MOVE.W #$4C09, (A4)+ ** Loads "L\T" into the print buffer
+                MOVE D1, D2
+                MOVE D2, D3
+                AND.W #%0000010000000000, D3 **Checks the direction **
+                ASR.W #$8, D3
+                ASR.W #$2, D3
+                MULU #$6, D3
+                LEA MOVEmem_table, A3
+                JSR 0(A3, D3)
+                RTS
+                
+Get_PRE_AReg_List
+               MOVE.B D1, D4     ***Moves the address list mask to d4 ***
+               MOVE.B #$00, D5  ** Preps D5
+               MOVE.B #9, D6    ** Sets the counter to 8 
+               **ASR #8, D4      ** Shifts the mask for Address Registers **
+               MOVE.B D1, D1
+loopPRE_Alist
+               SUB.B #$01, D6  ** Decrements the counter **
+               CMP.B #$00, D4
+               BEQ end_loop
+               CMP.B #$00, D6  ** Checks the counter **
+               BEQ end_loop   ** Ends the loop when counter is = 0 **
+               LSL.B #1, D4  ** Shifts mask to the left by one **
+               BCS printPRE_AReg_List ** Checks the carry Set bit **
+               BRA loopPRE_Alist
+               RTS
+                
+
+Get_POST_AReg_List
+               MOVE.W D1, D4     ***Moves the address list mask to d4 ***
+               MOVE.B #$00, D5  ** Preps D5
+               MOVE.B #8, D6    ** Sets the counter to 8 
+               ASR #8, D4      ** Shifts the mask for Address Registers **
+loopPOST_Alist
+               CMP.B #$00, D6  ** Checks the counter **
+               BEQ end_loop   ** Ends the loop when counter is = 0 **
+               LSR.B #1, D4  ** Shifts mask to the left by one **
+               BCS printPOST_AReg_List ** Checks the carry Set bit **
+               SUB.B #$01, D6  ** Decrements the counter **
+               MOVE.B #$2F, (A4)+
+               BRA loopPOST_Alist
+               RTS
+               
+               
+printPOST_AReg_List
+               MOVE.B D3, D5
+               ADD.B D6, D5
+               MOVE.B #$44, (A4)+
+               MOVE.B D5, (A4)+
+               MOVE.B #$2F, (A4)+
+               BRA loopPOST_Dlist
+               
+printPRE_AReg_List
+               MOVE.B D3, D5
+               SUB.B D6, D5
+               MOVE.B #$41, (A4)+
+               MOVE.B D5, (A4)+
+               MOVE.B #$2F, (A4)+
+               BRA loopPRE_Alist
+               
+Get_PRE_DReg_List
+               MOVE.W D1, D4
+               LSR #$8, D4 ** Data Register mask **
+               MOVE.W D4, D1
+               MOVE.B #$00, D5 ** Preps D5
+               MOVE.B #$09, D6 ** Sets the counter **
+               
+loopPRE_Dlist     
+               SUB.B #$1, D6
+               CMP.B #$00, D6
+               BEQ end_loop
+               LSL.B #1, D4
+               BCS printPRE_DReg_List
+               BRA loopPRE_Dlist
+               RTS
+               
+Get_POST_DReg_List
+               MOVE.W D1, D4
+               LSR #$8, D4 ** Data Register mask **
+               MOVE.B D1, D2 ** Address Register mask **
+               MOVE.B #$00, D5 ** Preps D5
+               MOVE.B #$08, D6 ** Sets the counter **
+               
+loopPOST_Dlist     
+               SUB.B #$1, D6
+               CMP.B #$00, D6
+               BEQ end_loop
+               LSL.B #1, D4
+               BCS printPOST_DReg_List
+               BRA loopPOST_Dlist
+               
+printPOST_DReg_List
+               MOVE.B D3, D5
+               ADD.B D6, D5
+               MOVE.B #$44, (A4)+
+               MOVE.B D5, (A4)+
+               MOVE.B #$2F, (A4)+
+               BRA loopPOST_Dlist
+               
+printPRE_DReg_List
+               MOVE.B D3, D5
+               SUB.B D6, D5
+               MOVE.B #$44, (A4)+
+               MOVE.B D5, (A4)+
+               MOVE.B #$2F, (A4)+
+               BRA loopPRE_Dlist
+               
+MOVEmem_table  
+                JMP Reg2Mem
+                JMP Mem2Reg
+                
+Reg2Mem
+               
+
+
+               LEA ea_table, A3
+               MOVE.W D1, D2
+               MOVE.W D2, D3
+               AND #%0000000000000111, D2
+               AND #%0000000000111000, D3
+               ASR #$3, D3
+               MULU #$6, D3
+               JSR 0(A3, D3)
+               
+               
+               JSR GET_WORD
+               MOVE.W D1, D0
+               MOVE #$30, D3
+               JSR Get_POST_DReg_List
+               MOVE.W D0, D1
+               JSR Get_POST_AReg_List
+               RTS
+               
+                
+
+Mem2Reg
+               LEA ea_table, A3
+               MOVE.W D1, D2
+               MOVE.W D2, D3
+               AND #%0000000000000111, D2
+               AND #%0000000000111000, D3
+               ASR #$3, D3
+               MULU #$6, D3
+               JSR 0(A3, D3)
+               
+               MOVE.W #$2C20, (A4)+ 
+               JSR GET_WORD
+               MOVE D1, D0
+               CLR D2
+               CLR D3
+               MOVE.L #$38, D3
+               JSR Get_PRE_DReg_List
+               MOVE.W D0, D1
+               JSR Get_PRE_AReg_List
+               JSR remove_tail
+               RTS
+
+end_loop
+                CMP.B #$00, D1
+                BEQ remove_tail
+                RTS                    
+remove_tail
+                MOVE.B #$FF, -(A4)
+                MOVE.B #$20, (A4)+ 
+                RTS                     
+                
+LEadd          
+
+JSRoutine      STOP    #$2700
+
+
+RTSource       MOVE.L #$52545320, (A4)+ **PUSHES "RTS " onto the print buffer **
+               RTS
 
 ea_table       JMP         eacode000
                JMP         eacode001
@@ -280,6 +535,7 @@ PRINT:
             LEA print_buffer, A1
             MOVE.B #13, D0
             TRAP #15
+            RTS
             
 
             
@@ -430,6 +686,7 @@ comma dc.b ', ', 0
 *~Font size~10~
 *~Tab type~1~
 *~Tab size~4~
+
 
 
 
