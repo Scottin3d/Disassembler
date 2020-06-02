@@ -309,7 +309,7 @@ endA2H
 BUFFER_PREP:
             MOVE.L  #$9641, D7      *'SUB D1, D3' to instruction register
             LEA     buffer, A2      *load buffer to address
-            BSR     SUB             *beging SUB subroutine
+            BSR     GETOPCODE       *beging SUB subroutine
 
 
 printBP     JSR         printinst  
@@ -328,7 +328,6 @@ printinst
 end_pi      RTS
 *===========================================================                       
 
-
 ************************************************************
 *BUFFER_FILL
 *Description: Fills the buffer with the current address
@@ -346,10 +345,55 @@ endbf      RTS
 * | | | | |_) | |  | | | | | | |  _| \___ \ 
 * | |_| |  __/| |__| |_| | |_| | |___ ___) |
 *  \___/|_|    \____\___/|____/|_____|____/ 
-*                                                  
+* 
+*GETOPCODE:
+*Description: Gets the first four bits of instruction to decode                                  
+*Registers Used:
+*For consistency, please utilize registers in the following way.
+*
+*D1 - utility register
+*D3 - utility register
+*D7 - copy of working address
+*
+*A2 - buffer address of decoded instruction
+*A6 - jump table               
 ************************************************************
+GETOPCODE:   
+            MOVE.W  D7, D3              *move to utility
+            MOVE.B  #12, D1             *
+            LSR.W   D1, D3              *shift
+            MULU    #6, D3              *offset          
+            LEA     OP_TABLE, A6        *                                                                                  
+            JSR     00(A6,D3)           *jump indirect with index (00 indicates word movement)
+endgop      RTS                         *return
+*===========================================================
 
-
+************************************************************
+*OPCODE Table
+*Description: Table of OPCODES
+************************************************************ 
+OP_TABLE
+            JMP         code0000
+            JMP         code0001
+            JMP         code0010
+            JMP         code0011
+            JMP         code0100
+            JMP         code0101
+            JMP         code0110
+            JMP         code0111
+            JMP         code1000
+            JMP         code1001
+            JMP         code1010
+            JMP         code1011
+            JMP         code1100
+            JMP         code1101
+            JMP         code1110
+            JMP         code1111
+            
+************************************************************
+*OPCODES
+*Description: OPCODE subroutines used to decode instructions
+************************************************************          
 
 *SUB
 *Cases for first four bits: 1001
@@ -361,8 +405,64 @@ endbf      RTS
 *D3 - size bit
 *D7 - copy of instruction
 *A2 - buffer address of decoded instruction
-************************************************************
-SUB:
+*
+************************************************************  
+* Case for: 0000
+* --(ORI,ANDI,SUBI,ADDI,EORI,CMPI) 
+code0000:   JMP     BADINST
+*===========================================================
+
+************************************************************  
+* Case for: 0001
+* --(MOVE.B)
+code0001:
+*===========================================================
+
+************************************************************  
+* Case for: 0010
+* --(MOVE.L, MOVEA.L)
+code0010:
+*===========================================================
+
+************************************************************  
+* Case for: 0011
+* --(MOVE.W, MOVEA.W)
+code0011:
+*===========================================================
+
+************************************************************  
+* Case for: 0100
+* --(CLR,MOVEM,JMP,JSR,RTS,LEA) 
+code0100:
+
+************************************************************  
+* Case for: 0101
+* --BAD INSTRUCTION
+code0101:
+*===========================================================
+
+************************************************************  
+* Case for: 0110
+* --(Bcc)
+code0110:
+*===========================================================
+
+************************************************************  
+* Case for: 0111
+* --BAD INSTRUCTION
+code0111:
+*===========================================================
+
+************************************************************  
+* Case for: 1000
+* --(OR) 
+code1000:
+*===========================================================
+
+************************************************************  
+* Case for: 1001
+* --(SUB, SUBA)
+code1001:
             MOVE.B  #$53, (A2)+     *'S' to buffer
             MOVE.B  #$55, (A2)+     *'U' to buffer
             MOVE.B  #$42, (A2)+     *'B' to buffer
@@ -386,7 +486,7 @@ subSuba     MOVE.B  #$20, (A2)+     *' ' to buffer
             MOVE.B  #$2C,(A2)+      *'B' to buffer
             MOVE.B  #$41,(A2)+      *'B' to buffer
             JSR     GETREGISTER     *get the register number
-            JMP     endsub          *return
+            JMP     end1001         *return
 **SUB*EA>>Register****************************************** 
 subSub      MOVE.B  #$2E, (A2)+     *'B' to buffer
             JSR     SIZE2BUFFER     *send size to buffer
@@ -398,15 +498,50 @@ subSub      MOVE.B  #$2E, (A2)+     *'B' to buffer
             MOVE.B  #$2C,(A2)+      *',' to buffer   
             MOVE.B  #$44,(A2)+      *'D' to buffer
             JSR     GETREGISTER     *get the register number
-            JMP     endsub          *return
+            JMP     end1001         *return
 **SUB*Register>>EA******************************************            
 subSubR     MOVE.B  #$44,(A2)+      *'D' to buffer
             JSR     GETREGISTER     *get the register number
             MOVE.B  #$2C,(A2)+      *',' to buffer
             JSR     GETEA           *get effective address
-endsub      RTS                     *return
+end1001     RTS                     *return
 *===========================================================
-                                                                      
+                                                       
+************************************************************  
+* Case for: 1010
+* --BAD INSTRUCTION
+code1010:
+*===========================================================
+
+************************************************************  
+* Case for: 1011
+* --(CMP,CMPA)
+code1011:
+*===========================================================
+
+************************************************************  
+* Case for: 1100
+* --(ADD, AND)
+code1100:
+*===========================================================
+
+************************************************************  
+* Case for: 1101
+* --BAD INSTRUCTION
+code1101:
+*===========================================================
+
+************************************************************  
+* Case for: 1110
+* --(ASR, LSL)
+code1110:
+*===========================================================
+
+************************************************************  
+* Case for: 1111
+* --BAD INSTRUCTION
+code1111:
+ *===========================================================             
 
 ************************************************************
 *  _____ _____ _____ _____ ____ _____ _____     _______      _    ____  ____  ____  _____ ____ ____  
@@ -428,12 +563,11 @@ endsub      RTS                     *return
 *
 *A2 - buffer address of decoded instruction
 *A6 - jump table
-
 ************************************************************
 GETEA:
             *MOVE.W  #$4541, (A2)+   *'EA' to buffer
             *TODO
-            LEA     ea_table, A6
+            LEA     EA_TABLE, A6
             CLR.L   D3
             MOVE.W  D7, D3
             ANDI.W  #$003F, D3
@@ -448,7 +582,7 @@ GETEA:
 *GET_TABLE
 *Description: Jump table of Effective Address Modes
 ************************************************************
-ea_table       
+EA_TABLE:       
             JMP     eacode000
             JMP     eacode001
             JMP     eacode010
@@ -604,8 +738,8 @@ endgd       RTS                     *return
 ************************************************************
 *SIZE2BUFFER
 *Description: Isolates and converts the instruction size and sends it to the output buffer
-              Byte, word, long read word in memory for instructions that utilize immediate
-              data.  At the end of the instruction, the working memory address is advanced.
+*              Byte, word, long read word in memory for instructions that utilize immediate
+*              data.  At the end of the instruction, the working memory address is advanced.
 *Registers Used:
 *D3 - size bit
 *A2 - buffer address of decoded instruction
