@@ -1,0 +1,383 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/02/20 2:32:26 PM
+
+00000000                             1  *Register Use
+00000000                             2  *For consistency, please utilize registers in the following way.
+00000000                             3  *
+00000000                             4  *D0 -
+00000000                             5  *D1 -
+00000000                             6  *D2 - copy of working address
+00000000                             7  *D3 - utility register
+00000000                             8  *D4 -
+00000000                             9  *D5 - flag condition
+00000000                            10  *D6 - counter
+00000000                            11  *D7 - Copy of instruction in register
+00000000                            12  *
+00000000                            13  *A0 - temp address holder
+00000000                            14  *A1 - trap address
+00000000                            15  *A2 - buffer address of decoded instruction
+00000000                            16  *A3 - working address
+00000000                            17  *A4 - starting address
+00000000                            18  *A5 - ending address
+00000000                            19  *A6 -
+00000000                            20  *A7 -
+00000000                            21  *-----------------------------------------------------------
+00000000  =00001000                 22  start       EQU     $1000
+00001000                            23              ORG     start           *start
+00001000                            24              
+00001000  9641                      25              SUB.W   D1, D3          *samle instruction to verify
+00001002  2E3C 00009641             26              MOVE.L  #$9641, D7      *'SUB D1, D3' to instruction register
+00001008  45F9 00001272             27              LEA     buffer, A2      *load buffer to address
+0000100E  6100 0018                 28              BSR     SUB             *beging SUB subroutine
+00001012                            29              
+00001012                            30              *print to console
+00001012  14BC 0000                 31              MOVE.B  #00, (A2)
+00001016  103C 000D                 32              MOVE.B  #13, D0
+0000101A  43F9 00001272             33              LEA     buffer, A1
+00001020  4E4F                      34              TRAP    #15
+00001022                            35              
+00001022  4EF9 0000126E             36              JMP     END             *end
+00001028                            37  ************************************************************
+00001028                            38  *SUB
+00001028                            39  *Cases for first four bits: 1001
+00001028                            40  *Description: Converts opcode instruction that start with 1001
+00001028                            41  *SUB, SUBA
+00001028                            42  * 1001 0110 0100 0001
+00001028                            43  * ^--^
+00001028                            44  *Registers Used:
+00001028                            45  *D3 - size bit
+00001028                            46  *D7 - copy of instruction
+00001028                            47  *A2 - buffer address of decoded instruction
+00001028                            48  ************************************************************
+00001028                            49  SUB:
+00001028  14FC 0053                 50              MOVE.B  #$53, (A2)+     *'S' to buffer
+0000102C  14FC 0055                 51              MOVE.B  #$55, (A2)+     *'U' to buffer
+00001030  14FC 0042                 52              MOVE.B  #$42, (A2)+     *'B' to buffer
+00001034  4EB9 000011CA             53              JSR     GETSIZE         *get the instruction size (OPMODE)
+0000103A  B63C 0003                 54              CMP.B   #%11, D3        *11 = SUBA  
+0000103E  6600 004A                 55              BNE     subSub
+00001042  14FC 0041                 56              MOVE.B  #$41, (A2)+     *'A' to buffer
+00001046  14FC 002E                 57              MOVE.B  #$2E, (A2)+     *'.' to buffer
+0000104A  3607                      58              MOVE.W  D7, D3          *move to utility
+0000104C  E08B                      59              LSR.L   #8, D3          *shift for opmode
+0000104E  0243 0001                 60              ANDI.W  #$0001, D3      *isolate 8 to determine size
+00001052  B63C 0001                 61              CMP.B   #%1, D3         *long?
+00001056  6700 0008                 62              BEQ     subLong         *it's a longword
+0000105A  4EF9 00001064             63              JMP     subSuba
+00001060                            64  **SUBA******************************************************            
+00001060  14FC 004C                 65  subLong     MOVE.B  #$4C, (A2)+     *'L' to buffer
+00001064  14FC 0020                 66  subSuba     MOVE.B  #$20, (A2)+     *' ' to buffer    
+00001068  14FC 0020                 67              MOVE.B  #$20, (A2)+     *' ' to buffer
+0000106C  14FC 0020                 68              MOVE.B  #$20, (A2)+     *' ' to buffer
+00001070  4EB9 000010D6             69              JSR     GETEA           *get effective address
+00001076  14FC 002C                 70              MOVE.B  #$2C,(A2)+      *'B' to buffer
+0000107A  14FC 0041                 71              MOVE.B  #$41,(A2)+      *'B' to buffer
+0000107E  4EB9 00001232             72              JSR     GETREGISTER     *get the register number
+00001084  4EF9 000010D4             73              JMP     endsub          *return
+0000108A                            74  **SUB*EA>>Register****************************************** 
+0000108A  14FC 002E                 75  subSub      MOVE.B  #$2E, (A2)+     *'B' to buffer
+0000108E  4EB9 000011F0             76              JSR     SIZE2BUFFER     *send size to buffer
+00001094  14FC 0009                 77              MOVE.B  #$09, (A2)+     *tab
+00001098  4EB9 00001244             78              JSR     GETDIRECTION    *isolate bit for direction
+0000109E  B63C 0000                 79              CMP.B   #%0, D3         *direction bit 0 = EA; 1 = regs
+000010A2  6600 001C                 80              BNE     subSubR         
+000010A6  4EB9 000010D6             81              JSR     GETEA           *get effective address
+000010AC  14FC 002C                 82              MOVE.B  #$2C,(A2)+      *',' to buffer   
+000010B0  14FC 0044                 83              MOVE.B  #$44,(A2)+      *'D' to buffer
+000010B4  4EB9 00001232             84              JSR     GETREGISTER     *get the register number
+000010BA  4EF9 000010D4             85              JMP     endsub          *return
+000010C0                            86  **SUB*Register>>EA******************************************            
+000010C0  14FC 0044                 87  subSubR     MOVE.B  #$44,(A2)+      *'D' to buffer
+000010C4  4EB9 00001232             88              JSR     GETREGISTER     *get the register number
+000010CA  14FC 002C                 89              MOVE.B  #$2C,(A2)+      *',' to buffer
+000010CE  4EB9 000010D6             90              JSR     GETEA           *get effective address
+000010D4  4E75                      91  endsub      RTS                     *return
+000010D6                            92  *===========================================================
+000010D6                            93  
+000010D6                            94  ************************************************************
+000010D6                            95  *GETEA
+000010D6                            96  *Description: Converts the opcode instruction EA
+000010D6                            97  * 1001 0110 0100 0001
+000010D6                            98  *             ^-----^
+000010D6                            99  *Registers Used:
+000010D6                           100  *TODO
+000010D6                           101  ************************************************************
+000010D6                           102  GETEA:
+000010D6                           103              *MOVE.W  #$4541, (A2)+   *'EA' to buffer
+000010D6                           104              *TODO
+000010D6  4DF9 000010F4            105              LEA     ea_table, A6
+000010DC  4283                     106              CLR.L   D3
+000010DE                           107              *CLR.L   D7
+000010DE  3607                     108              MOVE.W  D7, D3
+000010E0  0243 003F                109              ANDI.W  #$003F, D3
+000010E4  123C 0003                110              MOVE.B  #3, D1
+000010E8  E26B                     111              LSR.W   D1, D3
+000010EA  C6FC 0006                112              MULU    #6, D3
+000010EE  4EB6 3000                113              JSR     0(A6, D3)
+000010F2  4E75                     114              RTS                     *return
+000010F4                           115  *===========================================================
+000010F4                           116  
+000010F4                           117  ************************************************************
+000010F4                           118  *GET_TABLE
+000010F4                           119  *Description: Jump table of Effective Address Modes
+000010F4                           120  ************************************************************
+000010F4                           121  ea_table       
+000010F4  4EF9 00001124            122              JMP     eacode000
+000010FA  4EF9 00001136            123              JMP     eacode001
+00001100  4EF9 00001148            124              JMP     eacode010
+00001106  4EF9 00001162            125              JMP     eacode011
+0000110C  4EF9 00001180            126              JMP     eacode100
+00001112  4EF9 0000119E            127              JMP     eacode101
+00001118  4EF9 000011A4            128              JMP     eacode110
+0000111E  4EF9 000011AA            129              JMP     eacode111
+00001124                           130  *===========================================================
+00001124                           131  ************************************************************
+00001124                           132  *EA CODES
+00001124                           133  *Description: Lsit of Effective Address Subrotines
+00001124                           134  *000,001,010,011,100,101,110,111
+00001124                           135  *Registers Used:
+00001124                           136  *TODO
+00001124                           137  ************************************************************
+00001124                           138  *Data Register
+00001124  3607                     139  eacode000   MOVE.W      D7, D3          *move to utility
+00001126  0243 0007                140              ANDI.W      #$7, D3         *isolate
+0000112A  14FC 0044                141              MOVE.B      #$44,(A2)+      *'D' to buffer
+0000112E  0603 0030                142              ADD.B       #$30, D3        *convert register number to ascii
+00001132  14C3                     143              MOVE.B      D3,(A2)+        *to buffer                  
+00001134  4E75                     144  endea000    RTS                         *return
+00001136                           145  
+00001136                           146  *Address Register
+00001136  3607                     147  eacode001   MOVE.W      D7, D3          *move to utility
+00001138  0243 0007                148              ANDI.W      #$7, D3         *isolate
+0000113C  163C 0041                149              MOVE.B      #$41, D3        *'A' to buffer
+00001140  0603 0030                150              ADD.B       #$30, D3        *convert register number to ascii
+00001144  14C3                     151              MOVE.B      D3,(A2)+        *to buffer  
+00001146  4E75                     152  endea001    RTS                         *return
+00001148                           153  
+00001148                           154  *Address
+00001148  3607                     155  eacode010   MOVE.W      D7, D3          *move to utility
+0000114A  0243 0007                156              ANDI.W      #$7, D3         *isolate
+0000114E  14FC 0028                157              MOVE.B      #$28,(A2)+      *'(' to buffer            
+00001152  14FC 0041                158              MOVE.B      #$41,(A2)+      *'A' to buffer
+00001156  0603 0030                159              ADD.B       #$30, D3        *convert register number to ascii
+0000115A  14C3                     160              MOVE.B      D3,(A2)+        *to buffer  
+0000115C  14FC 0029                161              MOVE.B      #$29,(A2)+      *')' to buffe
+00001160  4E75                     162  endea010    RTS                         *return
+00001162                           163  
+00001162                           164  *Address with Postincrement
+00001162  3607                     165  eacode011   MOVE.W      D7, D3          *move to utility
+00001164  0243 0007                166              ANDI.W      #$7, D3         *isolate
+00001168  14FC 0028                167              MOVE.B      #$28,(A2)+      *'(' to buffer            
+0000116C  14FC 0041                168              MOVE.B      #$41,(A2)+      *'A' to buffer
+00001170  0603 0030                169              ADD.B       #$30, D3        *convert register number to ascii
+00001174  14C3                     170              MOVE.B      D3,(A2)+        *to buffer  
+00001176  14FC 0029                171              MOVE.B      #$29,(A2)+      *')' to buffer
+0000117A  14FC 002B                172              MOVE.B      #$2B, (A2)+     *'+' to buffer
+0000117E  4E75                     173  endea011    RTS                         *return
+00001180                           174  
+00001180                           175  *Address with Predecrement
+00001180  3607                     176  eacode100   MOVE.W      D7, D3          *move to utility
+00001182  0243 0007                177              ANDI.W      #$7, D3         *isolate
+00001186  14FC 002D                178              MOVE.B      #$2D,(A2)+      *'-' to buffer 
+0000118A  14FC 0028                179              MOVE.B      #$28,(A2)+      *'(' to buffer            
+0000118E  14FC 0041                180              MOVE.B      #$41,(A2)+      *'A' to buffer
+00001192  0603 0030                181              ADD.B       #$30, D3        *convert register number to ascii
+00001196  14C3                     182              MOVE.B      D3,(A2)+        *to buffer  
+00001198  14FC 0029                183              MOVE.B      #$29,(A2)+      *')' to buffe
+0000119C  4E75                     184  endea100    RTS                         *return
+0000119E                           185  
+0000119E                           186  *Bad Instruction
+0000119E  4EF9 0000124E            187  eacode101   JMP         BADINST
+000011A4                           188  
+000011A4                           189  *Bad Instruction
+000011A4  4EF9 0000124E            190  eacode110   JMP         BADINST
+000011AA                           191  
+000011AA                           192  
+000011AA                           193  *Immediate
+000011AA  4EB9 000011D4            194  eacode111   JSR         REGISTERBIT     *isolate register bits
+000011B0  0C03 0000                195              CMPI.B      #$0, D3         *word?
+000011B4                           196              *BEQ         WORD2BUFFER
+000011B4  0C03 0001                197              CMPI.B      #$1, D3         *long?
+000011B8                           198              *BEQ         LONG2BUFFER
+000011B8  0C03 0002                199              CMPI.B      #$2, D3         *PC?
+000011BC  6700 001E                200              BEQ         PC2BUFFER
+000011C0  0C03 0004                201              CMPI.B      #$4, D3         *Immediate Data?
+000011C4  6700 0028                202              BEQ         IMM2BUFER
+000011C8  4E75                     203  endea111    RTS                         *return
+000011CA                           204  
+000011CA                           205  
+000011CA                           206  ************************************************************
+000011CA                           207  *GETSIZE
+000011CA                           208  *Description: Returns the size of the bit in the utility register
+000011CA                           209  * 1001 0110 0100 0001
+000011CA                           210  *       ^^--------->|
+000011CA                           211  *Registers Used:
+000011CA                           212  *D3 - size bit
+000011CA                           213  *D7 - copy of instruction
+000011CA                           214  ************************************************************
+000011CA                           215  GETSIZE:
+000011CA  3607                     216              MOVE.W  D7, D3          *move to utility
+000011CC  EC4B                     217              LSR.W   #6, D3          *shift
+000011CE  0243 0003                218              ANDI.W  #$0003, D3      *isolate
+000011D2  4E75                     219  endGS       RTS                     *return
+000011D4                           220  *===========================================================
+000011D4                           221  
+000011D4                           222  REGISTERBIT:
+000011D4  3607                     223              MOVE.W  D7, D3
+000011D6  0243 0007                224              ANDI.W  #$07, D3
+000011DA  4E75                     225  endrb       RTS
+000011DC                           226  
+000011DC                           227  PC2BUFFER:
+000011DC                           228              *JSR     WORD2BUFFER
+000011DC  14FC 0028                229              MOVE.B      #$28,(A2)+   *'(' to buffer            
+000011E0  14FC 0050                230              MOVE.B      #$50,(A2)+   *'P' to buffer
+000011E4  14FC 0043                231              MOVE.B      #$43,(A2)+   *'C' to buffer
+000011E8  14FC 0029                232              MOVE.B      #$29,(A2)+   *')' to buffer                        
+000011EC  4E75                     233  endpc2b     RTS
+000011EE                           234              
+000011EE                           235  
+000011EE                           236  IMM2BUFER:
+000011EE                           237              
+000011EE  4E75                     238  endi2b      RTS
+000011F0                           239  
+000011F0                           240  ************************************************************
+000011F0                           241  *SIZE2BUFFER
+000011F0                           242  *Description: Isolates and converts the instruction size and sends it to the output buffer
+000011F0                           243  *Registers Used:
+000011F0                           244  *D3 - size bit
+000011F0                           245  *A2 - buffer address of decoded instruction
+000011F0                           246  ************************************************************
+000011F0                           247  SIZE2BUFFER:
+000011F0  4EB8 11CA                248              JSR     GETSIZE         *get the size of bit
+000011F4  B63C 0000                249              CMP.B   #%00, D3        *byte
+000011F8  6700 001E                250              BEQ     s2bB        
+000011FC  B63C 0001                251              CMP.B   #%01, D3        *word
+00001200  6700 0020                252              BEQ     s2bW        
+00001204  B63C 0002                253              CMP.B   #%10, D3        *long
+00001208  6700 0022                254              BEQ     s2bL        
+0000120C  4EB9 0000124E            255              JSR     BADINST         *bad instruction
+00001212  4EF9 00001230            256              JMP     ends2b      
+00001218                           257              
+00001218  14FC 0042                258  s2bB        MOVE.B  #$42,(A2)+      *'B' to buffer
+0000121C  4EF9 00001230            259              JMP     ends2b      
+00001222  14FC 0057                260  s2bW        MOVE.B  #$57,(A2)+      *'W' to buffer
+00001226  4EF9 00001230            261              JMP     ends2b    
+0000122C  14FC 004C                262  s2bL        MOVE.B  #$4C,(A2)+      *'L' to buffer
+00001230  4E75                     263  ends2b      RTS                     *return
+00001232                           264  *===========================================================
+00001232                           265  
+00001232                           266  ************************************************************
+00001232                           267  *GETREGISTER
+00001232                           268  *Description: Finds the register size and sends it to the output buffer
+00001232                           269  * 1001 0110 0100 0001
+00001232                           270  *      ^-^--------->|
+00001232                           271  *Registers Used:
+00001232                           272  *D3 - size bit
+00001232                           273  *D7 - copy of instruction
+00001232                           274  *A2 - buffer address of decoded instruction          
+00001232                           275  ************************************************************
+00001232                           276  GETREGISTER:
+00001232  3607                     277              MOVE.W  D7,D3            *move to utility
+00001234  E08B                     278              LSR.L   #8,D3            *shift 8
+00001236  E28B                     279              LSR.L   #1,D3            *shift 1
+00001238  0203 0007                280              ANDI.B  #$7,D3           *isolate last 7 bits for register number
+0000123C  0603 0030                281              ADD.B   #$30,D3          *convert register number to ascii
+00001240  14C3                     282              MOVE.B  D3,(A2)+         *to buffer
+00001242  4E75                     283  endGR       RTS                      *return
+00001244                           284  *===========================================================
+00001244                           285  
+00001244                           286  ************************************************************
+00001244                           287  *GETDIRECTION
+00001244                           288  *Description: Finds direction of the instruction and sets it to the utility register
+00001244                           289  * 1001 0110 0100 0001
+00001244                           290  *         ^-------->|
+00001244                           291  *Registers Used:
+00001244                           292  *D3 - size bit
+00001244                           293  *D7 - copy of instruction 
+00001244                           294  ************************************************************
+00001244                           295  GETDIRECTION:
+00001244  3607                     296              MOVE.W  D7, D3          *move to utility
+00001246  E08B                     297              LSR.L   #8, D3          *shift 8
+00001248  0203 0001                298              ANDI.B  #01, D3         *isolate 8th bit
+0000124C  4E75                     299  endgd       RTS                     *return
+0000124E                           300  *===========================================================
+0000124E                           301  
+0000124E                           302  ************************************************************
+0000124E                           303  *BADINST
+0000124E                           304  *Description: A bad instruction has been called, print to console
+0000124E                           305  *Registers Used:
+0000124E                           306  *D5 - flag condition
+0000124E                           307  *A2 - buffer address of decoded instruction
+0000124E                           308  *A2 - working address    
+0000124E                           309  ************************************************************
+0000124E                           310  BADINST:
+0000124E  1A3C 0001                311              MOVE.B  #1,D5           *set bad flag
+00001252  244B                     312              MOVEA.L A3, A2          *reset the buffer pointer 
+00001254  14FC 0044                313              MOVE.B  #$44,(A2)+      *'D' to buffer
+00001258  14FC 0041                314              MOVE.B  #$41,(A2)+      *'A' to buffer
+0000125C  14FC 0054                315              MOVE.B  #$54,(A2)+      *'T' to buffer
+00001260  14FC 0041                316              MOVE.B  #$41,(A2)+      *'A' to buffer
+00001264  14FC 0009                317              MOVE.B  #$09,(A2)+      *tab
+00001268  14FC 0024                318              MOVE.B  #$24,(A2)+      *'$' to buffer     
+0000126C                           319              *JSR     getBadWord     *add bad word to buffer TODO
+0000126C  4E75                     320  endbi       RTS                     *return
+0000126E                           321  *===========================================================
+0000126E                           322  
+0000126E                           323  END:
+0000126E  FFFF FFFF                324              SIMHALT 
+00001272= 01                       325  buffer      dc.b    1
+00001273                           326  
+00001273                           327              END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BADINST             124E
+BUFFER              1272
+EACODE000           1124
+EACODE001           1136
+EACODE010           1148
+EACODE011           1162
+EACODE100           1180
+EACODE101           119E
+EACODE110           11A4
+EACODE111           11AA
+EA_TABLE            10F4
+END                 126E
+ENDBI               126C
+ENDEA000            1134
+ENDEA001            1146
+ENDEA010            1160
+ENDEA011            117E
+ENDEA100            119C
+ENDEA111            11C8
+ENDGD               124C
+ENDGR               1242
+ENDGS               11D2
+ENDI2B              11EE
+ENDPC2B             11EC
+ENDRB               11DA
+ENDS2B              1230
+ENDSUB              10D4
+GETDIRECTION        1244
+GETEA               10D6
+GETREGISTER         1232
+GETSIZE             11CA
+IMM2BUFER           11EE
+PC2BUFFER           11DC
+REGISTERBIT         11D4
+S2BB                1218
+S2BL                122C
+S2BW                1222
+SIZE2BUFFER         11F0
+START               1000
+SUB                 1028
+SUBLONG             1060
+SUBSUB              108A
+SUBSUBA             1064
+SUBSUBR             10C0

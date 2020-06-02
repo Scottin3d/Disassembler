@@ -100,10 +100,108 @@ endsub      RTS                     *return
 *TODO
 ************************************************************
 GETEA:
+            *MOVE.W  #$4541, (A2)+   *'EA' to buffer
             *TODO
-            MOVE.W  #$4541, (A2)+   *'EA' to buffer
+            LEA     ea_table, A6
+            CLR.L   D3
+            CLR.L   D7
+            MOVE.W  D7, D3
+            ANDI.W  #$003F, D3
+            MOVE.B  #3, D1
+            LSR.W   D1, D3
+            MULU    #6, D3
+            JSR     0(A6, D3)
             RTS                     *return
 *===========================================================
+
+************************************************************
+*GET_TABLE
+*Description: Jump table of Effective Address Modes
+************************************************************
+ea_table       
+            JMP     eacode000
+            JMP     eacode001
+            JMP     eacode010
+            JMP     eacode011
+            JMP     eacode100
+            JMP     eacode101
+            JMP     eacode110
+            JMP     eacode111
+*===========================================================
+************************************************************
+*EA CODES
+*Description: Lsit of Effective Address Subrotines
+*000,001,010,011,100,101,110,111
+*Registers Used:
+*TODO
+************************************************************
+*Data Register
+eacode000   MOVE.W      D7, D3          *move to utility
+            ANDI.W      #$7, D3         *isolate
+            MOVE.B      #$44,(A2)+      *'D' to buffer
+            ADD.B       #$30, D3        *convert register number to ascii
+            MOVE.B      D3,(A2)+        *to buffer                  
+endea000    RTS                         *return
+
+*Address Register
+eacode001   MOVE.W      D7, D3          *move to utility
+            ANDI.W      #$7, D3         *isolate
+            MOVE.B      #$41, D3        *'A' to buffer
+            ADD.B       #$30, D3        *convert register number to ascii
+            MOVE.B      D3,(A2)+        *to buffer  
+endea001    RTS                         *return
+
+*Address
+eacode010   MOVE.W      D7, D3          *move to utility
+            ANDI.W      #$7, D3         *isolate
+            MOVE.B      #$28,(A2)+      *'(' to buffer            
+            MOVE.B      #$41,(A2)+      *'A' to buffer
+            ADD.B       #$30, D3        *convert register number to ascii
+            MOVE.B      D3,(A2)+        *to buffer  
+            MOVE.B      #$29,(A2)+      *')' to buffe
+endea010    RTS                         *return
+
+*Address with Postincrement
+eacode011   MOVE.W      D7, D3          *move to utility
+            ANDI.W      #$7, D3         *isolate
+            MOVE.B      #$28,(A2)+      *'(' to buffer            
+            MOVE.B      #$41,(A2)+      *'A' to buffer
+            ADD.B       #$30, D3        *convert register number to ascii
+            MOVE.B      D3,(A2)+        *to buffer  
+            MOVE.B      #$29,(A2)+      *')' to buffer
+            MOVE.B      #$2B, (A2)+     *'+' to buffer
+endea011    RTS                         *return
+
+*Address with Predecrement
+eacode100   MOVE.W      D7, D3          *move to utility
+            ANDI.W      #$7, D3         *isolate
+            MOVE.B      #$2D,(A2)+      *'-' to buffer 
+            MOVE.B      #$28,(A2)+      *'(' to buffer            
+            MOVE.B      #$41,(A2)+      *'A' to buffer
+            ADD.B       #$30, D3        *convert register number to ascii
+            MOVE.B      D3,(A2)+        *to buffer  
+            MOVE.B      #$29,(A2)+      *')' to buffe
+endea100    RTS                         *return
+
+*Bad Instruction
+eacode101   JMP         BADINST
+
+*Bad Instruction
+eacode110   JMP         BADINST
+
+
+*Immediate
+eacode111   JSR         REGISTERBIT     *isolate register bits
+            CMPI.B      #$0, D3         *word?
+            BEQ         WORD2BUFFER
+            CMPI.B      #$1, D3         *long?
+            BEQ         LONG2BUFFER
+            CMPI.B      #$2, D3         *PC?
+            BEQ         PC2BUFFER
+            CMPI.B      #$4, D3         *Immediate Data?
+            BEQ         IMM2BUFER
+endea111    RTS                         *return
+
 
 ************************************************************
 *GETSIZE
@@ -120,6 +218,24 @@ GETSIZE:
             ANDI.W  #$0003, D3      *isolate
 endGS       RTS                     *return
 *===========================================================
+
+REGISTERBIT:
+            MOVE.W  D7, D3
+            ANDI.W  #$07, D3
+endrb       RTS
+
+PC2BUFFER:
+            JSR     WORD2BUFFER
+            MOVE.B      #$28,(A2)+   *'(' to buffer            
+            MOVE.B      #$50,(A2)+   *'P' to buffer
+            MOVE.B      #$43,(A2)+   *'C' to buffer
+            MOVE.B      #$29,(A2)+   *')' to buffer                        
+endpc2b     RTS
+            
+
+IMM2BUFER:
+            
+endi2b      RTS
 
 *SIZE2BUFFER
 *Description: Isolates and converts the instruction size and sends it to the output buffer
@@ -208,6 +324,7 @@ END:
 buffer      dc.b    1
 
             END    START
+
 *~Font name~Courier New~
 *~Font size~10~
 *~Tab type~1~
