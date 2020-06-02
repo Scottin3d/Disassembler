@@ -31,7 +31,7 @@
 *-----------------------------------------------------------
 start       EQU     $1000               *start address
 stack       EQU     $A000               *stack address  
- 
+buf         EQU     $9000
 
 minAdd      EQU     $00000000           *start of address space
 maxAdd      EQU     $00FFFFFF           *end of address space
@@ -71,7 +71,6 @@ main_input  BSR     U_INPUT             *branch to input
             
             
 main_test   JSR     dis_test            *display inputs
-
             
 main_loop   JSR     BUFFER_PREP         *prep buffer
 
@@ -307,23 +306,25 @@ endA2H
 ************************************************************
 *BUFFER_PREP
 ************************************************************
-BUFFER_PREP:  
-            MOVEA.L A6,A2         
-            JSR     printinst   
-            MOVEA.L (A0)+, A2
-
+BUFFER_PREP:
+            MOVEA.L     A6,A2  
+            LEA         buf, A2
+            
+            *BSR         BYTE2BUFFER
+            BSR         WORD2BUFFER
+            *BSR         LONG2BUFFER
+printBP     JSR         printinst   
+            MOVEA.L     A0, A2
 endBP       RTS
 
 
 printinst   
             CLR         D0
             CLR         D1
-            MOVE.L      A0, v_test
-            MOVE.B      #task3, D0
-            MOVE.L      v_test, D1
+            LEA         buf, A1
+            MOVE.B      #00, (A2)
+            MOVE.B      #task13, D0
             TRAP        #15
-            
-            JSR         dis_cr
             
 end_pi      RTS
                        
@@ -334,9 +335,116 @@ end_pi      RTS
 *Description: Fills the buffer with the current address
 ************************************************************
 BUFFER_FILL:
-            MOVEA.L     A2, A1
-            MOVE.B      #$09,(A2)+                                   
-endFL       RTS
+           MOVEA.L  A2,A1              *load trap address with A2            
+           *JSR      getLong
+           MOVE.B   #$09,(A2)+                                  
+endFL      RTS
+
+
+*----------------------------------------------------------- 
+*CONVERT2BUFFER
+*Description: Puts word to print buffer
+*D3 - Utility register
+*D6 - Counter
+*A0 - Utility address
+*A2 - Address buffer
+
+*----------------------------------------------------------- 
+
+************************************************************
+*BYTE2BUFFER
+*Buffer: $XX
+************************************************************
+BYTE2BUFFER:
+            MOVEM.L     D0-D6,-(SP)         *save data registers to the stack
+            MOVE.B      #'$', (A2)+  
+            CLR.L       D4                  *clear counter
+            MOVE.L      A0, (A7)
+            MOVE.L      (A7), D7
+            MOVE.L      (A7), D2            *move current word into D2 for rolling purposes
+            MOVE.B      #2, D4              *load counter
+
+b2bLoop                 
+            CMP.B       #$00, D4            *compare counter with 0
+            BEQ         endb2b              *if zero, return
+            ROL.W       #4, D2              *roll the bits in D2 to the left
+            MOVE.W      D2, D3              *move rolled bits into temp storage
+            ANDI.W      #$000F, D3          *and the bits to isolate ascii char   
+            JSR         HEX2ASCII           *load ascii char into buffer            
+            SUBQ.B      #$1, D4             *subtract from counter
+            JMP         b2bLoop             *keep looping until counter hits zero
+            
+endb2b      MOVE.W      D7, D3              *re-load current word for temp storage            
+            ADDQ.W      #2, A0              *advancing memory pointer by word  
+            MOVEM.L     (SP)+,D0-D6         *load data registers from stack   
+            RTS                             *return
+************************************************************
+*WORD2BUFFER
+*Buffer: $XXXX
+************************************************************
+WORD2BUFFER:
+            MOVEM.L     D0-D6,-(SP)         *save data registers to the stack
+            MOVE.B      #'$', (A2)+  
+            CLR.L       D4                  *clear counter
+            MOVE.L      A0, (A7)
+            MOVE.L      (A7), D7
+            MOVE.L      (A7), D2            *move current word into D2 for rolling purposes
+            MOVE.B      #4, D4              *load counter
+
+w2bLoop                 
+            CMP.B       #$00, D4            *compare counter with 0
+            BEQ         endw2b              *if zero, return
+            ROL.W       #4, D2              *roll the bits in D2 to the left
+            MOVE.W      D2, D3              *move rolled bits into temp storage
+            ANDI.W      #$000F, D3          *and the bits to isolate ascii char   
+            JSR         HEX2ASCII           *load ascii char into buffer            
+            SUBQ.B      #$1, D4             *subtract from counter
+            JMP         w2bLoop             *keep looping until counter hits zero
+            
+endw2b      MOVE.W      D7, D3              *re-load current word for temp storage            
+            ADDQ.W      #2, A0              *advancing memory pointer by word  
+            MOVEM.L     (SP)+,D0-D6         *load data registers from stack   
+            RTS                             *return
+ 
+************************************************************
+*LONG2BUFFER
+*Buffer: $XXXXXXXX
+************************************************************           
+LONG2BUFFER:
+            MOVEM.L     D0-D6,-(SP)         *save data registers to the stack
+            MOVE.B      #'$', (A2)+  
+            CLR.L       D4                  *clear counter
+            MOVE.L      A0, (A7)
+            MOVE.L      (A7), D7
+            MOVE.L      (A7), D2            *move current word into D2 for rolling purposes
+            MOVE.B      #8, D4              *load counter
+
+l2bLoop                 
+            CMP.B       #$00, D4            *compare counter with 0
+            BEQ         endl2b              *if zero, return
+            ROL.W       #4, D2              *roll the bits in D2 to the left
+            MOVE.W      D2, D3              *move rolled bits into temp storage
+            ANDI.W      #$000F, D3          *and the bits to isolate ascii char   
+            JSR         HEX2ASCII           *load ascii char into buffer            
+            SUBQ.B      #$1, D4             *subtract from counter
+            JMP         l2bLoop             *keep looping until counter hits zero
+            
+endl2b      MOVE.W      D7, D3              *re-load current word for temp storage            
+            ADDQ.W      #4, A0              *advancing memory pointer by word  
+            MOVEM.L     (SP)+,D0-D6         *load data registers from stack   
+            RTS   
+************************************************************
+*HEX2ASCII
+************************************************************            
+HEX2ASCII:  
+            CMP.B       #$A, D3             * Confirm hex character?
+            BGE         letter              * Is it a letter or number?
+            ADDI.B      #$30,D3             * Convert decimal to ASCII
+            BRA         write2Buff          * save to good buffer
+letter      ADDI.B      #$37,D3
+write2Buff  MOVE.B      D3,(A2)+
+            RTS
+            
 
 
 ************************************************************
@@ -382,6 +490,8 @@ v_test      ds.l    1               *start a temp value
 
 
     END    START        ; last line of source
+
+
 
 
 
