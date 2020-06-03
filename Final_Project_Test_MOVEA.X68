@@ -267,12 +267,141 @@ code0111       STOP        #$2700
 code1000       STOP        #$2700
 code1001       STOP        #$2700
 code1010       STOP        #$2700
-code1011       STOP        #$2700
+
+code1011       MOVE.L #$434D502E, (A4)+ **Loads "CMP." into the print buffer**
+               MOVE.W D1, D3
+               AND.L #%0000000111000000, D3
+               LSR.L #$6, D3
+               
+               CMPI.W #$0000, D3
+               BEQ.S code1011_000
+               
+               CMPI.W #$0001, D3
+               BEQ.S code1011_001
+               
+               CMPI.W #$0002, D3
+               BEQ.S code1011_010
+               
+               MOVE.L #$494E5644, (A4)+
+               
+code1011_000   MOVE.W #$4209, (A4)+
+               BRA code1011_cont
+               
+code1011_001   MOVE.W #$5709, (A4)+
+               BRA code1011_cont
+               
+code1011_010   MOVE.W #$4C09, (A4)+
+               BRA code1011_cont
+               
+code1011_cont  CLR.L D2
+               CLR.L D3
+               
+               MOVE.W D1, D2
+               AND.L #%0000000000000111, D2 ** checks the source reg number **
+
+               
+               MOVE.W D1, D3
+               AND.L #%0000000000111000, D3 ** checks the source mode type **
+               ASR.W #$3, D3 ** shifts the bits to the right **
+               
+               LEA ea_table, A3 ** loads ea_table for jmp **
+               MULU #6,D3 ** gets the index of the jmp table **
+               
+               JSR 0(A3, D3) ** jumps to the Jump Table **
+               
+               MOVE.W #$2C20, (A4)+
+               
+               CLR D2   ** clears registers for source reg and mode 
+               CLR D3
+               
+               MOVE.W D1, D2
+               AND.L #%0000111000000000, D2 ** checks the register number ***
+               LSR.W #$8, D2 **shifts the bits to the right
+               LSR.B #$1, D2
+               
+               MOVE.W D1, D3
+               AND.L #%0000000111000000, D3 ** checks the addressing mode **
+               LSR.W #$6, D3 ** shifts the bits to the right 
+              
+               
+               LEA ea_table, A3 ** loads the ea_table **
+               MULU #6, D3 ** gets the index of the jump table **
+               
+               JSR 0(A3, D3) **jumps to the ea_table for source dissassembly **
+               MOVE.W #$2000, (A4)+
+               JSR PRINT
+               RTS ** Returns to sender **
+             
+                    
+
+
 code1100       STOP        #$2700
 code1101       STOP        #$2700
-code1110       STOP        #$2700
+code1110       MOVE.L D1, D3
+               AND.L #%1111111111000000, D3
+               CMPI.L #$E3C0, D3
+               BEQ.S code1110_lsl1
+               CMPI.L #$E0C0, D3
+               BEQ.S code1110_asr1
+               MOVE.L D1, D3
+               AND.L #%1111000100011000, D3
+               CMPI.L #$E108, D3
+               BEQ.S code1110_lsl2
+               CMPI.L #$E000, D3
+               BEQ.S code1110_asr2
+               
+               
+
+code1110_lsl1 MOVE.L #$4C534C09, (A4)+
+              CLR.L D2
+              CLR.L D3
+               
+              MOVE.W D1, D2
+              AND.L #%0000000000000111, D2 ** checks the source reg number **
+
+               
+              MOVE.W D1, D3
+              AND.L #%0000000000111000, D3 ** checks the source mode type **
+              ASR.W #$3, D3 ** shifts the bits to the right **
+              
+              CMP.W #$0001,D3 
+              BLE BADINST
+              
+              CMP.W #$0007, D2
+              BNE lsl1_cont
+              CMP.W #$0001, D3
+              BLE lsl1_cont
+              BRA BADINST
+               
+lsl1_cont     LEA ea_table, A3 ** loads ea_table for jmp **
+              MULU #6,D3 ** gets the index of the jmp table **
+               
+              JSR 0(A3, D3) ** jumps to the Jump Table **
+
+              
+              
+
+code1110_lsl2 
+              
+              
+              
+
+
+code1110_asr1 MOVE.L #$41535209, (A4)+
+              
+                
+
+code1110_asr2
+
+
+
+
+
+
+
 code1111       STOP        #$2700
 
+BADINST        STOP        #$2700
 
 ea_table       JMP         eacode000
                JMP         eacode001
@@ -282,6 +411,8 @@ ea_table       JMP         eacode000
                JMP         eacode101
                JMP         eacode110
                JMP         eacode111
+               
+
                
                
 **********************************************************************
@@ -372,9 +503,8 @@ eacode110
                MOVE.B #$29, D3
                MOVE.L D3, (A4)+
                RTS 
-eacode111        
-
- 
+eacode111 
+       
              
 PRINT:
 
@@ -538,6 +668,7 @@ comma dc.b ', ', 0
 *~Font size~10~
 *~Tab type~1~
 *~Tab size~4~
+
 
 
 
