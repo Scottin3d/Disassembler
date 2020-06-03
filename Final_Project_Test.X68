@@ -153,7 +153,8 @@ code0001       MOVE.L #$4D4F5645, (A4)+ ** Loads "MOVE" INTO PRINT_BUFFER
                MULU #6, D3 ** gets the index of the jump table **
                
                JSR 0(A3, D3) **jumps to the ea_table for source dissassembly **
-               MOVE.W #$2000, (A4)+
+               MOVE.B #$20, (A4)+
+               MOVE.B #$00, (A4)+
                JSR PRINT
                RTS ** Returns to sender **
                
@@ -169,12 +170,21 @@ code0100
                 MULU #6, D3
                 
                 JSR 0(A3, D3)
-                MOVE.W #$2000, (A4)+
                 JSR PRINT
                 RTS
 
 code0101       STOP        #$2700
-code0110       STOP        #$2700
+code0110       CLR.L D2
+               MOVE.W D1, D2
+               MOVE.W D2, D3
+               AND.W #%0000111100000000, D3
+               ASR #$8, D3
+               CMP #$4, D3
+               JSR BCC
+               CMP #$E, D3
+               JSR BGT
+               CMP #$F, D3
+               JSR BLE
 code0111       STOP        #$2700
 code1000       STOP        #$2700
 code1001       STOP        #$2700
@@ -185,6 +195,32 @@ code1101       STOP        #$2700
 code1110       STOP        #$2700
 code1111       STOP        #$2700
 
+BCC
+              MOVE.B #$42, (A4)+
+              MOVE.B #$43, (A4)+
+              MOVE.B #$43, (A4)+
+              MOVE.B #$09, (A4)+
+              
+              CLR D3
+              MOVE.W D1, D3
+              AND.W #%0000000011111111, D3
+              MOVE.L A1, D4
+              CMP #$00, D3
+              BEQ 
+              CMP #$FF, D3
+              
+              
+              
+              
+              
+    
+
+BGT
+
+BLE
+                
+
+
 code0100L1_table   
                JMP         error_inst **000
                JMP         RTSource   **001
@@ -194,6 +230,34 @@ code0100L1_table
                JMP         error_inst **101
                JMP         error_inst **110
                JMP         LEadd **111
+               RTS
+               
+LEadd
+
+               AND.W #%0000000000111000, D3
+               AND.W #%0000000000000111, D2
+               LEA ea_table, A3
+               JSR 0(A3, D3)
+               
+               MOVE.W #$2C20, (A4)+
+
+
+               MOVE.L #$4C455109, (A4)+
+               CLR.L D2
+               CLR.L D3
+               ASR #$8, D2
+               ASR #$1, D2
+               ADD.B #$30, D2
+               MOVE.B #$44, (A4)+
+               MOVE.B D2, (A4)+
+               
+               CLR D2
+               CLR D3
+               
+              
+               
+
+               
 
 
 code0100L2      CLR.L D2
@@ -213,6 +277,23 @@ code0100L2      CLR.L D2
 code0100L2_table
                JMP MOVEmem 
                JMP JSRoutine
+               
+JSRoutine
+               MOVE.W D1, D2
+               MOVE.W D2, D3
+               MOVE.B #$4A, (A4)+
+               MOVE.B #$53, (A4)+
+               MOVE.B #$52, (A4)+
+               MOVE.B #$09, (A4)+
+               
+               AND.W #%0000000000111000, D3
+               AND.W #%0000000000000111, D2
+               ASR #$3, D3
+               LEA ea_table, A3
+               MULU #$6, D3
+               JSR 0(A3, D3)
+               RTS
+               
                
 error_inst          STOP #$2700
 
@@ -269,7 +350,6 @@ Get_PRE_AReg_List
                MOVE.B #$00, D5  ** Preps D5
                MOVE.B #9, D6    ** Sets the counter to 8 
                **ASR #8, D4      ** Shifts the mask for Address Registers **
-               MOVE.B D1, D1
 loopPRE_Alist
                SUB.B #$01, D6  ** Decrements the counter **
                CMP.B #$00, D4
@@ -283,31 +363,33 @@ loopPRE_Alist
                 
 
 Get_POST_AReg_List
-               MOVE.W D1, D4     ***Moves the address list mask to d4 ***
+               MOVE.W D1, D4
+               ASR #8, D4
                MOVE.B #$00, D5  ** Preps D5
-               MOVE.B #8, D6    ** Sets the counter to 8 
-               ASR #8, D4      ** Shifts the mask for Address Registers **
+               MOVE.B #9, D6    ** Sets the counter to 8 
 loopPOST_Alist
+               SUB.B #$01, D6  ** Decrements the counter **
+               CMP.B #$00, D4
+               BEQ end_loop
                CMP.B #$00, D6  ** Checks the counter **
                BEQ end_loop   ** Ends the loop when counter is = 0 **
-               LSR.B #1, D4  ** Shifts mask to the left by one **
+               LSL.B #1, D4  ** Shifts mask to the left by one **
                BCS printPOST_AReg_List ** Checks the carry Set bit **
-               SUB.B #$01, D6  ** Decrements the counter **
-               MOVE.B #$2F, (A4)+
                BRA loopPOST_Alist
                RTS
                
                
 printPOST_AReg_List
-               MOVE.B D3, D5
+               MOVE.B #$30, D5
                ADD.B D6, D5
-               MOVE.B #$44, (A4)+
+               SUB.B #$1, D5
+               MOVE.B #$41, (A4)+
                MOVE.B D5, (A4)+
                MOVE.B #$2F, (A4)+
-               BRA loopPOST_Dlist
+               BRA loopPOST_Alist
                
 printPRE_AReg_List
-               MOVE.B D3, D5
+               MOVE.B #$38, D5
                SUB.B D6, D5
                MOVE.B #$41, (A4)+
                MOVE.B D5, (A4)+
@@ -317,7 +399,6 @@ printPRE_AReg_List
 Get_PRE_DReg_List
                MOVE.W D1, D4
                LSR #$8, D4 ** Data Register mask **
-               MOVE.W D4, D1
                MOVE.B #$00, D5 ** Preps D5
                MOVE.B #$09, D6 ** Sets the counter **
                
@@ -331,11 +412,9 @@ loopPRE_Dlist
                RTS
                
 Get_POST_DReg_List
-               MOVE.W D1, D4
-               LSR #$8, D4 ** Data Register mask **
-               MOVE.B D1, D2 ** Address Register mask **
+               MOVE.B D1, D4
                MOVE.B #$00, D5 ** Preps D5
-               MOVE.B #$08, D6 ** Sets the counter **
+               MOVE.B #$09, D6 ** Sets the counter **
                
 loopPOST_Dlist     
                SUB.B #$1, D6
@@ -344,17 +423,20 @@ loopPOST_Dlist
                LSL.B #1, D4
                BCS printPOST_DReg_List
                BRA loopPOST_Dlist
+               RTS
+
                
 printPOST_DReg_List
-               MOVE.B D3, D5
+               MOVE.B #$30, D5
                ADD.B D6, D5
+               SUB.B #$1, D5
                MOVE.B #$44, (A4)+
                MOVE.B D5, (A4)+
                MOVE.B #$2F, (A4)+
                BRA loopPOST_Dlist
                
 printPRE_DReg_List
-               MOVE.B D3, D5
+               MOVE.B #$38, D5
                SUB.B D6, D5
                MOVE.B #$44, (A4)+
                MOVE.B D5, (A4)+
@@ -366,9 +448,15 @@ MOVEmem_table
                 JMP Mem2Reg
                 
 Reg2Mem
+               MOVE.W D1, D0             
+               JSR GET_WORD
+               JSR Get_PRE_DReg_List
+               JSR Get_PRE_AReg_List
                
-
-
+               MOVE.B #$FF, -(A4)
+               MOVE.B #$2C, (A4)+
+               MOVE.B #$20, (A4)+
+               MOVE.W D0, D1
                LEA ea_table, A3
                MOVE.W D1, D2
                MOVE.W D2, D3
@@ -377,14 +465,6 @@ Reg2Mem
                ASR #$3, D3
                MULU #$6, D3
                JSR 0(A3, D3)
-               
-               
-               JSR GET_WORD
-               MOVE.W D1, D0
-               MOVE #$30, D3
-               JSR Get_POST_DReg_List
-               MOVE.W D0, D1
-               JSR Get_POST_AReg_List
                RTS
                
                 
@@ -399,15 +479,16 @@ Mem2Reg
                MULU #$6, D3
                JSR 0(A3, D3)
                
-               MOVE.W #$2C20, (A4)+ 
+               MOVE.B #$2C, (A4)+ 
+               MOVE.B #$20, (A4)+
                JSR GET_WORD
                MOVE D1, D0
                CLR D2
                CLR D3
                MOVE.L #$38, D3
-               JSR Get_PRE_DReg_List
+               JSR Get_POST_AReg_List
                MOVE.W D0, D1
-               JSR Get_PRE_AReg_List
+               JSR Get_POST_DReg_List
                JSR remove_tail
                RTS
 
@@ -420,9 +501,8 @@ remove_tail
                 MOVE.B #$20, (A4)+ 
                 RTS                     
                 
-LEadd          
 
-JSRoutine      STOP    #$2700
+
 
 
 RTSource       MOVE.L #$52545320, (A4)+ **PUSHES "RTS " onto the print buffer **
@@ -437,6 +517,41 @@ ea_table       JMP         eacode000
                JMP         eacode110
                JMP         eacode111
                
+eacode111_table
+               JMP ea111_000
+               JMP ea111_001
+               JMP ea111_010
+               JMP ea111_011
+               JMP ea111_100
+               JMP ea111_101
+               JMP ea111_110
+               JMP ea111_111
+               
+ea111_000
+              JSR GET_WORD
+              MOVE.L #$57514F44, (A4)+
+              RTS
+              
+
+ea111_001
+             JSR GET_WORD
+             MOVE.B #$24, (A4)+
+             MOVE.B #$4C, (A4)+
+             MOVE.B #$4F, (A4)+
+             MOVE.B #$4E, (A4)+
+             MOVE.B #$47, (A4)+
+             MOVE.B #$57, (A4)+
+             MOVE.B #$4F, (A4)+
+             MOVE.B #$52, (A4)+
+             MOVE.B #$44, (A4)+
+             RTS
+ea111_010
+ea111_011
+ea111_100
+ea111_101
+ea111_110
+ea111_111
+               
                
 **********************************************************************
 **      eacode000 handles addressing mode Data Register (Dn)        **
@@ -447,60 +562,39 @@ ea_table       JMP         eacode000
 **********************************************************************
 
 eacode000       ADD.B #$30, D2              ** Adds the hexa value "0" to the register number 
-                CLR D3                      ** Clears the Register in D3
-                MOVE.B #$44, D3             ** Adds the hexa value "D" to D3
-                ASL.L #$8, D3               ** Shifts the hexa bits to the left 
-                ADD.B D2, D3                ** Adds the hexavalue of the the register number
-                MOVE.W D3, (A4)+            ** Appends the ea mode and register number to the print buffer
-                RTS                         ** Returns to Sender 
+                MOVE.B #$44, (A4)+
+                MOVE.B D2, (A4)+
+                MOVE.B #$20, (A4)+ 
+                RTS
                                     
 eacode001
                ADD.B #$30, D2
-               CLR D3
-               MOVE.B #$41, D3
-               ASL.L #$8, D3
-               ADD.B D2, D3
-               MOVE.W D3, (A4)+
+               MOVE.B #$41, (A4)+
+               MOVE.B D2, (A4)+
+               MOVE.B #$20, (A4)+
                RTS       
 eacode010
                ADD.B #$30, D2
-               CLR D3
-               MOVE.B #$28, D3
-               ASL.L #$8, D3
-               MOVE.B #$41, D3
-               ASL.L #$8, D3
-               MOVE.B D2, D3
-               ASL.L #$8, D3
-               MOVE.B #$29, D3
-               MOVE.L D3, (A4)+
+               MOVE.B #$28, (A4)+
+               MOVE.B #$41, (A4)+
+               MOVE.B #$29, (A4)+
                RTS   
 
 eacode011
                ADD.B #$30, D2
-               CLR D3
-               MOVE.B #$28, D3
-               ASL.L #$8, D3
-               MOVE.B #$41, D3
-               ASL.L #$8, D3
-               MOVE.B D2, D3
-               ASL.L #$8, D3
-               MOVE.B #$29, D3
-               MOVE.L D3, (A4)+              
-               MOVE.W #$2B20, (A4)+
-
+               MOVE.B #$28, (A4)+
+               MOVE.B #$41, (A4)+
+               MOVE.B D2, (A4)+
+               MOVE.B #$29, (A4)+
+               MOVE.B #$2B, (A4)+
                RTS 
 eacode100
                ADD.B #$30, D2
-               CLR D3
-               MOVE.B #$2D, D3
-               ASL.L #$8, D3
-               MOVE.B #$28, D3
-               ASL.L #$8, D3
-               MOVE.B #$41, D3
-               ASL.L #$8, D3
-               MOVE.B D2, D3
-               MOVE.L D3, (A4)+              
-               MOVE.W #$2920, (A4)+
+               MOVE.B #$2D, (A4)+
+               MOVE.B #$28, (A4)+
+               MOVE.B #$41, (A4)+
+               MOVE.B D2, (A4)+
+               MOVE.B #$29, (A4)+
                RTS
 eacode101
                ADD.B #$30, D2
@@ -526,12 +620,16 @@ eacode110
                MOVE.B #$29, D3
                MOVE.L D3, (A4)+
                RTS 
-eacode111        
+eacode111
+               LEA eacode111_table, A3
+               MULU #$6, D2
+               JSR 0(A3, D2)
+               RTS      
 
  
              
 PRINT:
-
+            MOVE.B #$00, (A4)+
             LEA print_buffer, A1
             MOVE.B #13, D0
             TRAP #15
@@ -686,6 +784,8 @@ comma dc.b ', ', 0
 *~Font size~10~
 *~Tab type~1~
 *~Tab size~4~
+
+
 
 
 
