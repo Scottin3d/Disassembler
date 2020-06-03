@@ -79,6 +79,7 @@ task14      EQU     14                  *Display the NULL terminated string at (
             ORG     start
             BSR     dis_intro_msg       *print intro message
             
+            
 main        BSR     CLEAR               *clear all registers
             LEA     stack, SP           *load stack pointer
             LEA     buffer, A2          *set buffer for input
@@ -307,7 +308,11 @@ endA2H
 *BUFFER_PREP
 ************************************************************
 BUFFER_PREP:
-            MOVE.L  #$9641, D7      *'SUB D1, D3' to instruction register
+            CLR     buffer
+            *MOVE.B  D7, D3
+            *MOVE.L  #$9641, D7      *'SUB D1, D3' to instruction register
+            *MOVE.L  #$1601, D7      *'MOVE.B  D1, D3' 
+            MOVE.L  (A0), D7
             LEA     buffer, A2      *load buffer to address
             BSR     GETOPCODE       *beging SUB subroutine
 
@@ -416,6 +421,22 @@ code0000:   JMP     BADINST
 * Case for: 0001
 * --(MOVE.B)
 code0001:
+            MOVE.B  #$4D, (A2)+     *'M' to buffer
+            MOVE.B  #$4F, (A2)+     *'O' to buffer
+            MOVE.B  #$56, (A2)+     *'V' to buffer
+            MOVE.B  #$45, (A2)+     *'E' to buffer
+            MOVE.B  #$2E, (A2)+     *'.' to buffer
+            MOVE.B  #$42, (A2)+     *'B' to buffer
+            MOVE.B  #$9, (A2)+      *tab to buffer
+            JSR     GETEA
+            MOVE.B  #$2C, (A2)+     *',' to buffer
+            
+            JSR     SWAP2MOVE       * swap destination and source regs
+            JSR     GETEA  
+
+            
+            RTS
+end0001
 *===========================================================
 
 ************************************************************  
@@ -521,13 +542,51 @@ code1011:
 
 ************************************************************  
 * Case for: 1100
-* --(ADD, AND)
+* --(AND)
+*MULU, EXG are not applicable to this assignment and will be 
+*regarded as a bad instruction
 code1100:
+            MOVE.W  D7, D3          *move to utility
+            LSR.L   #6, D3          *shift
+            ANDI.W  #$3, D3         *isolate
+            CMP.B   #$3, D3         *MULU/MULS?
+            BEQ     BADINST         *instruction not supported
+            
+            MOVE.W  D7, D3          *move to utility
+            LSR.L   #3, D3          *shift
+            ANDI.B  #$1F, D3        *isolate
+            CMP.B   #$08, D3        *EXG?
+            BEQ     BADINST         *instruction not supported
+            CMP.B   #$09, D3        *EXG?
+            BEQ     BADINST         *instruction not supported
+            CMP.B   #$11, D3        *EXG?
+            BEQ     BADINST         *ok, phew made it to AND
+            
+            MOVE.B  #$41, (A2)+     *'A' to buffer
+            MOVE.B  #$4E, (A2)+     *'N' to buffer
+            MOVE.B  #$44, (A2)+     *'D' to buffer
+            MOVE.B  #$2E, (A2)+     *'.' to buffer
+            JSR     SIZE2BUFFER     *send size to buffer
+            MOVE.B  #$9, (A2)+      *tab
+            JSR     GETDIRECTION    *isolate bit for direction
+            CMP.B   #%0, D3         *direction bit 0 = EA; 1 = regs
+            BNE     andd01          *direction = 01
+            JSR     GETEA           *get effective address
+            MOVE.B  #$2C, (A2)+     *',' to buffer
+            MOVE.B  #$44, (A2)+     *'D' to buffer
+            JSR     GETREGISTER     *get the register number
+            JMP     end1100     
+         
+andd01      MOVE.B  #$44, (A2)+     *'D' to buffer
+            JSR     GETREGISTER     *get the register number
+            MOVE.B  #$2C, (A2)+     *',' to buffer
+            JSR     GETEA           *get effective address 
+end1100     RTS                     *return
 *===========================================================
 
 ************************************************************  
 * Case for: 1101
-* --BAD INSTRUCTION
+* --(ADD,ADDA)
 code1101:
 *===========================================================
 
@@ -695,8 +754,8 @@ endGS       RTS                     *return
 ************************************************************
 GETREGISTER:
             MOVE.W  D7,D3            *move to utility
-            LSR.L   #8,D3            *shift 8
-            LSR.L   #1,D3            *shift 1
+            LSR.L   #8,D3            *shift
+            LSR.L   #1,D3            *shift
             ANDI.B  #$7,D3           *isolate last 7 bits for register number
             ADD.B   #$30,D3          *convert register number to ascii
             MOVE.B  D3,(A2)+         *to buffer
@@ -719,6 +778,42 @@ GETDIRECTION:
 endgd       RTS                     *return
 *===========================================================
 
+************************************************************
+*SWAP2MOVE
+*Description: For double EA move instructions, swaps registers to use EA jump table
+*Registers Used:
+*D3 - size bit
+*D4 - hold register for swap bits
+*D7 - swapped EA mode 
+SWAP2MOVE:
+            CLR.L   D3              *
+            MOVE.W  D7,D3           *move to utility
+            LSR.W   #8,D3           *shift
+            LSR.W   #1,D3           *shift
+            ANDI.W  #$0007,D3       *
+            OR.W    D3,D4           *store bits for swap
+            MOVE.W  D7,D3           *move to utility
+            LSR.W   #3,D3           *shift bits 6-8 to normal ea position
+            OR.W    D3,D4           *
+            JSR     s2mSize         *get mode size
+            MOVE.W  D4,D7           *load swap register
+ends2m      RTS                     *return
+
+s2mSize     MOVE.W  D7,D3           *move to utility
+            LSR.W   #8,D3           *shift
+            LSR.W   #4,D3           *
+            ANDI.W  #$0003,D3       *isolate
+            CMP.B   #$1,D3          *byte?
+            BEQ     ends2mS         *yes
+            CMP.B   #$2,D3          *long?
+            BEQ     s2mL            *yes
+            CMP.B   #$3,D3          *word?
+            BNE     BADINST         *No? bad instrustion        
+s2mW        ORI.W   #$0040,D4       *add size
+            JMP     ends2mS         *
+s2mL        ORI.W   #$0080,D4       *add size
+ends2mS     RTS                     *return
+*===========================================================
 
 ************************************************************
 *  ____  _   _ _____ _____ _____ ____     ____ ___  _   ___     _______ ____ _____ 
@@ -969,6 +1064,7 @@ v_test      ds.l    1               *start a temp value
 
 
     END    START        ; last line of source
+
 
 
 
