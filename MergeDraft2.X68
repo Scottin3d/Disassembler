@@ -193,7 +193,7 @@ U_INPUT:
             JSR     ASCII2HEX
             CMP.B   #$00,D5             *bad input?
             BEQ     endInput
-            MOVE.L  D7, v_srt_add       *store to varable
+            *MOVE.L  D7, v_srt_add       *store to varable
             CLR     D7
             
             MOVEA.L A0,A4       
@@ -207,7 +207,7 @@ U_INPUT:
             JSR     ASCII2HEX
             CMP.B   #$00,D5             *bad input?
             BEQ     endInput
-            MOVE.L  D7, v_end_add        *store to varable
+            *MOVE.L  D7, v_end_add        *store to varable
             CLR     D7
 
 
@@ -297,16 +297,16 @@ DECODE:
             LEA     buf, A2             *load buffer
             MOVEA.L A2,A1               *load trap address with buffer 
             JSR     ADDRESS             *current address to buffer
-            *MOVE.L  #$BA3C, (A0)        *CMP test case
-            *MOVE.L  (A0), D7
+            MOVE.W  (A0)+, D7            *move A0 value to test
 
             JSR     GETOPCODE           *decode instruction
 print_b     MOVE.B  #00,(A2)            *null terminator
             MOVE.B  #task13,D0
             TRAP    #15 
-
-            ADDQ.W      #2, A0
+            
             MOVE.B  #1, D5
+            *ADDQ.W      #2, A0
+            
 endDECODE   RTS
 *===========================================================                       
 
@@ -376,7 +376,7 @@ GETOPCODE:
             LEA     OP_TABLE, A6        *                                                                                  
             JSR     00(A6,D3)           *jump indirect with index (00 indicates word movement)
             MOVE.L  A2, D3
-            MOVE.L  D3, bufferend   
+            *MOVE.L  D3, bufferend   
 endgop      RTS                         *return
 *===========================================================
 
@@ -385,22 +385,22 @@ endgop      RTS                         *return
 *Description: Table of OPCODES
 ************************************************************ 
 OP_TABLE
-            JMP         opcode0000
-            JMP         opcode0001
-            JMP         opcode0010
-            JMP         opcode0011
-            JMP         opcode0100
-            JMP         opcode0101
-            JMP         opcode0110
-            JMP         opcode0111
-            JMP         opcode1000
-            JMP         opcode1001
-            JMP         opcode1010
-            JMP         opcode1011
-            JMP         opcode1100
-            JMP         opcode1101
-            JMP         opcode1110
-            JMP         opcode1111
+            JMP         opcode0000      *BADINST
+            JMP         opcode0001      *MOVE.B *testing*
+            JMP         opcode0010      *MOVE/A.L *incomplete*
+            JMP         opcode0011      *MOVE/A.W *incomplete*
+            JMP         opcode0100      *CLR,LEA,JMP,JSR,MOVEM,NEG*,NOP*,NOT*,RTS *testing*
+            JMP         opcode0101      *
+            JMP         opcode0110      *
+            JMP         opcode0111      *
+            JMP         opcode1000      *
+            JMP         opcode1001      *
+            JMP         opcode1010      *
+            JMP         opcode1011      *
+            JMP         opcode1100      *
+            JMP         opcode1101      *
+            JMP         opcode1110      *
+            JMP         opcode1111      *
             
 ************************************************************
 *OPCODES
@@ -478,7 +478,7 @@ opcode0100:
 **CLR******************************************************* 
 opCLR       MOVE.B  #$43, (A2)+     *'C' to buffer
             MOVE.B  #$4C, (A2)+     *'L' to buffer
-            MOVE.B  #$47, (A2)+     *'R' to buffer
+            MOVE.B  #$52, (A2)+     *'R' to buffer
             MOVE.B  #$2E, (A2)+     *'.' to buffer
             JSR     SIZE2BUFFER
             MOVE.B  #$20, (A2)+     *' ' to buffer
@@ -943,18 +943,16 @@ endea100    RTS                         *return
 eacode101   JMP         BADINST
 *Bad Instruction********************************************
 eacode110   JMP         BADINST
-*Immediate**************************************************
-eacode111   JSR         GETREGISTER     *isolate register bits
-            CMPI.B      #$4, D3         *Immediate Data?
-            BEQ         IMM2BUFER
-            CMPI.B      #$2, D3         *PC?
-            BEQ         BADINST
-            MOVE.B      #$24, (A2)+
+*Immediate*Absolute*****************************************
+eacode111   JSR         GETREGISTER     *isolate register bit
             CMPI.B      #$0, D3         *word?
             BEQ         WORD2BUFFER
             CMPI.B      #$1, D3         *long?
             BEQ         LONG2BUFFER
-            
+            CMPI.B      #$4, D3         *Immediate Data?
+            BEQ         IMM2BUFER
+            CMPI.B      #$2, D3         *PC?
+            BEQ         BADINST
 endea111    RTS                         *return
 *===========================================================
 
@@ -1131,22 +1129,24 @@ ends2b      RTS                     *return
 *Buffer: $XX
 ************************************************************
 BYTE2BUFFER:  
+            MOVE.B  #$24, (A2)+     *'$' to buffer
             CLR.L       D4                  *clear counter
-            MOVE.W      D7, D2
+            *ADDQ.W      #2, A0
+            MOVE.W      (A0), D2
             MOVE.B      #2, D4              *load counter
 **LOOP******************************************************
-b2bLoop                 
-            CMPI.B      #%0, D4            *end?
-            BEQ         endb2b             *
+B2BLoop                 
+            CMP.B      #$0, D4            *end?
+            BEQ         endB2B             *
             ROL.B       #4, D2             *roll bits
             MOVE.W      D2, D3             *move to utility
             ANDI.W      #$000F, D3          *isolate  
             JSR         HEX2ASCII           *load ascii char into buffer            
             SUBQ.B      #$1, D4             *subtract from counter
-            JMP         b2bLoop             *keep looping until counter hits zero
+            JMP         B2BLoop             *keep looping until counter hits zero
             
-endb2b      MOVE.W      D7, D3              *load from utility            
-            ADDQ.W      #4, A0              *advancing memory pointer by word  
+endB2B      MOVE.W      D7, D3              *load from utility            
+            ADDQ.W      #2, A0              *advancing memory pointer by word  
             RTS                             *return
 *===========================================================
 
@@ -1155,21 +1155,23 @@ endb2b      MOVE.W      D7, D3              *load from utility
 *Buffer: $XXXX
 ************************************************************
 WORD2BUFFER: 
-            CLR.L       D4                  *clear counter
-            MOVE.W      D7, D2            
-            MOVE.B      #4, D4              *load counter
+            MOVE.B  #$24, (A2)+     *'$' to buffer
+            CLR.L   D4
+            *ADDQ.W  #2, A0                  *clear counter
+            MOVE.W  (A0), D2            
+            MOVE.B  #4, D4              *load counter
 **LOOP******************************************************
-w2bLoop                 
-            CMPI.B       #%0, D4            *end?
-            BEQ         endw2b              *
+W2BLoop                 
+            CMP.B       #$00, D4            *end?
+            BEQ         endW2B              *
             ROL.W       #4, D2              *roll the bits in D2 to the left
             MOVE.W      D2, D3              *move rolled bits into temp storage
             ANDI.W      #$000F, D3          *and the bits to isolate ascii char   
             JSR         HEX2ASCII           *load ascii char into buffer            
             SUBQ.B      #$1, D4             *subtract from counter
-            JMP         w2bLoop             *keep looping until counter hits zero
+            JMP         W2BLoop             *keep looping until counter hits zero
        
-endw2b      MOVE.W      D7, D3              *load from utility            
+endW2B      MOVE.W      D7, D3              *load from utility            
             ADDQ.W      #2, A0              *advancing memory pointer by word   
             RTS                             *return
 *===========================================================
@@ -1179,21 +1181,23 @@ endw2b      MOVE.W      D7, D3              *load from utility
 *Buffer: $XXXXXXXX
 ************************************************************           
 LONG2BUFFER:
+            MOVE.B  #$24, (A2)+     *'$' to buffer
             CLR.L       D4                  *clear counter
-            MOVE.L      D7, D2
+            *ADDQ.W      #2, A0                  *clear counter
+            MOVE.L      (A0), D2 
             MOVE.B      #8, D4              *load counter
 **LOOP******************************************************
-l2bLoop                 
-            CMPI.B       #%0, D4            *end?
+L2BLoop                 
+            CMP.B       #$00, D4            *end?
             BEQ         endL2B              *
             ROL.L       #4, D2              *
             MOVE.W      D2, D3              *
             ANDI.W      #$000F, D3          *isolate
             JSR         HEX2ASCII           *to buffer           
             SUBQ.B      #$1, D4             *subtract from counter
-            JMP         l2bLoop             *loop
+            JMP         L2BLoop             *loop
             
-endl2b      MOVE.W      D7, D3              *load from utility           
+endL2B      MOVE.W      D7, D3              *load from utility           
             ADDQ.W      #4, A0              *advancing memory pointer by word  
             RTS  
 *===========================================================
@@ -1231,22 +1235,22 @@ BADINST:
             MOVE.B  #$41,(A2)+      *'A' to buffer
             MOVE.B  #$54,(A2)+      *'T' to buffer
             MOVE.B  #$41,(A2)+      *'A' to buffer
-            MOVE.B  #$20,(A2)+      *' ' to buffer
+            MOVE.B  #$9, (A2)+        *tab buffer
             MOVE.B  #$24,(A2)+      *'$' to buffer
             
-            MOVE.W  D7, D3
+            MOVE.W  (A0), D3
             MOVE.B  #12, D4
             JSR     SHIFT
             JSR     Hex2ASCII
-            MOVE.W  D7, D3
+            MOVE.W  (A0), D3
             MOVE.B  #8, D4
             JSR     SHIFT
             JSR     Hex2ASCII
-            MOVE.W  D7, D3
+            MOVE.W  (A0), D3
             MOVE.B  #4, D4
             JSR     SHIFT
             JSR     Hex2ASCII
-            MOVE.W  D7, D3
+            MOVE.W  (A0), D3
             ANDI.W  #$000F, D3
             JSR     Hex2ASCII
 endbadinst  RTS
@@ -1342,12 +1346,13 @@ str_end     dc.b '                                                              
 
 bad_inst    dc.w    'BAD INSTRUCTION',0
 
-v_srt_add   ds.l    1               *store start address
-v_end_add   ds.l    1               *store end address
-v_test      ds.l    1               *start a temp value
+*v_srt_add   ds.l    1               *store start address
+*v_end_add   ds.l    1               *store end address
+*v_test      ds.l    1               *start a temp value
 
 
     END    START        ; last line of source
+
 
 
 

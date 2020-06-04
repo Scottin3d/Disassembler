@@ -1,0 +1,68 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 10:40:36 AM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :CLR Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble CLR instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   45A
+00000400                            12  TEST
+00000400                            13  *various size
+00000400  4200                      14      CLR.B     D0
+00000402  4207                      15      CLR.B     D7
+00000404  4240                      16      CLR.W     D0
+00000406  4247                      17      CLR.W     D7
+00000408  4280                      18      CLR.L     D0
+0000040A  4287                      19      CLR.L     D7
+0000040C  4210                      20      CLR.B     (A0)
+0000040E  4217                      21      CLR.B     (A7)
+00000410  4250                      22      CLR.W     (A0)
+00000412  4257                      23      CLR.W     (A7)
+00000414  4290                      24      CLR.L     (A0)
+00000416  4297                      25      CLR.L     (A7)
+00000418                            26  *posd
+00000418  4218                      27      CLR.B     (A0)+
+0000041A  421F                      28      CLR.B     (A7)+
+0000041C  4258                      29      CLR.W     (A0)+
+0000041E  425F                      30      CLR.W     (A7)+
+00000420  4298                      31      CLR.L     (A0)+
+00000422  429F                      32      CLR.L     (A7)+
+00000424                            33  *pre
+00000424  4220                      34      CLR.B     -(A0)
+00000426  4227                      35      CLR.B     -(A7)
+00000428  4260                      36      CLR.W     -(A0)
+0000042A  4267                      37      CLR.W     -(A7)
+0000042C  42A0                      38      CLR.L     -(A0)
+0000042E  42A7                      39      CLR.L     -(A7)
+00000430                            40  *immediate data
+00000430  4238 0012                 41      CLR.B     $12
+00000434  4238 1234                 42      CLR.B     $1234
+00000438  4239 12345678             43      CLR.B     $12345678
+0000043E  4278 0012                 44      CLR.W     $12
+00000442  4278 1234                 45      CLR.W     $1234
+00000446  4279 12345678             46      CLR.W     $12345678
+0000044C  42B8 0012                 47      CLR.L     $12
+00000450  42B8 1234                 48      CLR.L     $1234
+00000454  42B9 12345678             49      CLR.L     $12345678
+0000045A                            50  endTEST
+0000045A  FFFF FFFF                 51      SIMHALT             ; halt simulator
+0000045E                            52  
+0000045E                            53      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             45A
+START               400
+TEST                400
