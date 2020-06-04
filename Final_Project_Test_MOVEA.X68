@@ -282,7 +282,7 @@ code1011       MOVE.L #$434D502E, (A4)+ **Loads "CMP." into the print buffer**
                CMPI.W #$0002, D3
                BEQ.S code1011_010
                
-               MOVE.L #$494E5644, (A4)+
+               BRA BADINST
                
 code1011_000   MOVE.W #$4209, (A4)+
                BRA code1011_cont
@@ -337,18 +337,20 @@ code1011_cont  CLR.L D2
 
 code1100       STOP        #$2700
 code1101       STOP        #$2700
+
+*******************************************ASR***LSL****************************************
 code1110       MOVE.L D1, D3
                AND.L #%1111111111000000, D3
                CMPI.L #$E3C0, D3
                BEQ.S code1110_lsl1
                CMPI.L #$E0C0, D3
-               BEQ.S code1110_asr1
+               BEQ code1110_asr1
                MOVE.L D1, D3
                AND.L #%1111000100011000, D3
                CMPI.L #$E108, D3
-               BEQ.S code1110_lsl2
+               BEQ code1110_lsl2
                CMPI.L #$E000, D3
-               BEQ.S code1110_asr2
+               BEQ code1110_asr2
                
                
 
@@ -377,28 +379,115 @@ lsl1_cont     LEA ea_table, A3 ** loads ea_table for jmp **
               MULU #6,D3 ** gets the index of the jmp table **
                
               JSR 0(A3, D3) ** jumps to the Jump Table **
-
+              JSR PRINT
+              RTS ** Returns to sender **
               
               
 
-code1110_lsl2 
+code1110_lsl2 MOVE.L #$4C534C2E, (A4)+
+              CLR.L D2
+              CLR.L D3
+              MOVE.L D1, D3
+              AND.W #$00C0, D3
+              LSR.W #$6, D3
+              JSR SIZE2BUFFER
               
+              CLR.W D3
+              MOVE.L D1, D3
+              AND.W #$0020, D3
+              LSR.W #$5, D3
+              CMP.W #$0, D3
+              BEQ shift_i
+              BRA shift_r
               
+shift_i       MOVE.B #$09, (A4)+
+              MOVE.B #$23, (A4)+
+              MOVE.L D1, D3
+              AND.W #$0E00, D3
+              LSR.L #$8, D3
+              LSR.L #$1, D3
+              ADD.B #$1E, D3
+              MOVE.B D3, (A4)+
+              MOVE.B #$2C, (A4)+
+              MOVE.L D1, D2
+              AND.W #$0007, D2
+              CLR.L D3
+              LEA ea_table, A3 ** loads ea_table for jmp **
+              JSR 0(A3, D3) ** jumps to the Jump Table **
               
+              JSR PRINT
+              RTS ** Returns to sender **
 
+
+
+shift_r        MOVE.B #$09, (A4)+
+              MOVE.L D1, D2
+              AND.W #$0E00, D2
+              LSR.L #$8, D2
+              LSR.L #$1, D2
+              CLR.L D3
+              LEA ea_table, A3 ** loads ea_table for jmp **
+              JSR 0(A3, D3) ** jumps to the Jump Table **
+
+              MOVE.B #$2C, (A4)+
+              MOVE.L D1, D2
+              AND.W #$0007, D2
+              CLR.L D3
+              
+              JSR 0(A3, D3) ** jumps to the Jump Table **
+              
+              JSR PRINT
+              RTS ** Returns to sender **
 
 code1110_asr1 MOVE.L #$41535209, (A4)+
+              CLR.L D2
+              CLR.L D3
+               
+              MOVE.W D1, D2
+              AND.L #%0000000000000111, D2 ** checks the source reg number **
+
+               
+              MOVE.W D1, D3
+              AND.L #%0000000000111000, D3 ** checks the source mode type **
+              ASR.W #$3, D3 ** shifts the bits to the right **
               
-                
+              CMP.W #$0001,D3 
+              BLE BADINST
+              
+              CMP.W #$0007, D2
+              BNE lsl1_cont
+              CMP.W #$0001, D3
+              BLE lsl1_cont
+              BRA BADINST
+               
+asr1_cont     LEA ea_table, A3 ** loads ea_table for jmp **
+              MULU #6,D3 ** gets the index of the jmp table **
+               
+              JSR 0(A3, D3) ** jumps to the Jump Table **
+              JSR PRINT
+              RTS ** Returns to sender **
+              
+              
 
-code1110_asr2
+code1110_asr2 MOVE.L #$4153522E, (A4)+
+              CLR.L D2
+              CLR.L D3
+              MOVE.L D1, D3
+              AND.W #$00C0, D3
+              LSR.W #$6, D3
+              JSR SIZE2BUFFER
+              
+              CLR.W D3
+              MOVE.L D1, D3
+              AND.W #$0020, D3
+              LSR.W #$5, D3
+              CMP.W #$0, D3
+              BEQ shift_i
+              BRA shift_r
 
 
 
-
-
-
-
+**********************************************************************************************************
 code1111       STOP        #$2700
 
 BADINST        STOP        #$2700
