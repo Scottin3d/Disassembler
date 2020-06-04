@@ -1,0 +1,60 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 1:41:32 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :CMP Test File
+00000000                             3  * Written by :Scott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble CMP instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   
+00000400                            12  TEST
+00000400                            13  *registers
+00000400  B200                      14      CMP.B    D0,D1
+00000402  B210                      15      CMP.B    (A0),D1
+00000404  B220                      16      CMP.B    -(A0),D1
+00000406  B218                      17      CMP.B    (A0)+,D1
+00000408  B240                      18      CMP.W    D0,D1
+0000040A  B248                      19      CMP.W    A0,D1
+0000040C  B250                      20      CMP.W    (A0),D1
+0000040E  B260                      21      CMP.W    -(A0),D1
+00000410  B258                      22      CMP.W    (A0)+,D1
+00000412  B280                      23      CMP.L    D0,D1
+00000414  B288                      24      CMP.L    A0,D1
+00000416  B290                      25      CMP.L    (A0),D1
+00000418  B2A0                      26      CMP.L    -(A0),D1
+0000041A  B298                      27      CMP.L    (A0)+,D1
+0000041C                            28  *immediate/ absolute
+0000041C  B238 0012                 29      CMP.B     $12,D1
+00000420  B238 1234                 30      CMP.B     $1234,D1
+00000424  B239 12345678             31      CMP.B     $12345678,D1
+0000042A  B23C 0012                 32      CMP.B     #$12,D1
+0000042E  B278 0012                 33      CMP.W     $12,D1
+00000432  B278 1234                 34      CMP.W     $1234,D1
+00000436  B279 12345678             35      CMP.W     $12345678,D1
+0000043C  B27C 1234                 36      CMP.W     #$1234,D1
+00000440  B2B8 0012                 37      CMP.L     $12,D1
+00000444  B2B8 1234                 38      CMP.L     $1234,D1
+00000448  B2B9 12345678             39      CMP.L     $12345678,D1
+0000044E  B2BC 12345678             40      CMP.L     #$12345678,D1
+00000454                            41  
+00000454                            42  endTEST
+00000454  FFFF FFFF                 43      SIMHALT             ; halt simulator
+00000458                            44  
+00000458                            45      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             454
+START               400
+TEST                400

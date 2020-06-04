@@ -19,7 +19,7 @@
 *D1 -
 *D2 - 
 *D3 - utility register
-*D4 -
+*D4 - 
 *D5 - flag condition
 *D6 - counter
 *D7 - copy of working address
@@ -92,7 +92,7 @@ main_loop   JSR     DECODE         *prep buffer
 *loop checking **********************************************    
             CMPA.L  A0, A5              * have we reached the end of our address range?
             BLE     main_end  
- 
+            
             ADDI    #1, D6              *add counter
             CMP     #printcount, D6     *check loop progress
             BNE     main_loop
@@ -304,7 +304,10 @@ print_b     MOVE.B  #00,(A2)            *null terminator
             MOVE.B  #task13,D0
             TRAP    #15 
             
-            MOVE.B  #1, D5
+            *CMPI.B  #%0, D5
+            *BNE     decodeCont 
+            *ADDI    #1, badInstCount
+decodeCont  MOVE.B  #0, D5
             *ADDQ.W      #2, A0
             
 endDECODE   RTS
@@ -318,7 +321,9 @@ ADDRESS:
             CLR.L   D3
             CLR.L   D4
             CLR.L   D7
-            MOVE.B  #$24, (A2)+        
+            MOVE.B  #$24, (A2)+     *'$' to buffer
+            MOVE.B  #$30, (A2)+     *'0' to buffer
+            MOVE.B  #$78, (A2)+     *'x' to buffer       
             MOVE.L  #$00000000, D3
             MOVE.L  A0, D7
             ADD.W   D7, D3
@@ -390,17 +395,17 @@ OP_TABLE
             JMP         opcode0010      *MOVE/A.L *incomplete*
             JMP         opcode0011      *MOVE/A.W *incomplete*
             JMP         opcode0100      *CLR,LEA,JMP,JSR,MOVEM,NEG*,NOP*,NOT*,RTS *testing*
-            JMP         opcode0101      *
-            JMP         opcode0110      *
-            JMP         opcode0111      *
-            JMP         opcode1000      *
-            JMP         opcode1001      *
-            JMP         opcode1010      *
-            JMP         opcode1011      *
-            JMP         opcode1100      *
-            JMP         opcode1101      *
-            JMP         opcode1110      *
-            JMP         opcode1111      *
+            JMP         opcode0101      *BADINST
+            JMP         opcode0110      *BADINST
+            JMP         opcode0111      *BADINST
+            JMP         opcode1000      *OR
+            JMP         opcode1001      *SUB,SUBA
+            JMP         opcode1010      *BADINST
+            JMP         opcode1011      *CMP,CMPA
+            JMP         opcode1100      *AND
+            JMP         opcode1101      *ADD,ADDA
+            JMP         opcode1110      *ASR/LSL
+            JMP         opcode1111      *BADINST
             
 ************************************************************
 *OPCODES
@@ -458,33 +463,63 @@ endop0010   RTS
 *OPCODE: 0011
 *MOVE.W,MOVEA.W
 opcode0011:
+            MOVE.B  #$4D, (A2)+     *'M' to buffer
+            MOVE.B  #$4F, (A2)+     *'O' to buffer
+            MOVE.B  #$56, (A2)+     *'V' to buffer
+            MOVE.B  #$45, (A2)+     *'E' to buffer
+
+            MOVE.W   D7, D3    *Check the destination mode to see if addressing*
+            AND.L    #$01C0, D3 
+            CMPI.L   #$0040, D3 ** compares to see if addressing mode
+            BNE.S    code0011_cont **branches if destination mode is not addressing register
+            *MOVE.W   #$412E, (A2)+ **Loads "A." into the print_buffer
+            *MOVE.W   #$5720, (A2)+ **Loads "W   " into the print_buffer
+            MOVE.B  #$41, (A2)+     *'A' to buffer
+            MOVE.B  #$2E, (A2)+     *'.' to buffer
+            MOVE.B  #$57, (A2)+     *'W' to buffer
+            BRA      code0011_cont2 **branches back to code
+
+code0011_cont  
+            *MOVE.L   #$2E572020, (A2)+ **Loads ".W" into the print_buffer 
+            MOVE.B  #$2E, (A2)+     *'.' to buffer
+            MOVE.B  #$57, (A2)+     *'W' to buffer
+            
+code0011_cont2 
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            JSR      GETEA
+            MOVE.B   #$2C, (A2)+     *',' to buffer
+            JSR      SWAPREG         *swap destination and source regs
+            JSR      GETEA 
+            RTS
 *===========================================================
 
 ************************************************************  
 *OPCODE: 0100
-*CLR,LEA,JMP,JSR,MOVEM,NEG*,NOP*,NOT*,RTS 
+*CLR,LEA,JMP,JSR,MOVEM,NEG*,NOP*,NOT*,RTS
+* '*' - instructions, not required but included 
 opcode0100: 
+
+            *MOVEM
             MOVE.L  D7, D3
-            ANDI.W  #$0100, D3
-            CMP.W   #$0100, D3
-            BEQ     opLEA
+            AND.W #%0000111000000000, D3    *isolate bits 11 - 9
+            ASR #$6, D3
+            CMPI.W #%011, D3
+            *BEQ     op0100MOVEM
+
             MOVE.L  D7, D3
-            LSR.W   #8, D3
-            ANDI.W  #$000F, D3
-            MULU    #6, D3
-            LEA code0100L1_table, A6
-            JSR 0(A6, D3)
-            JMP     endop0100   
-**CLR******************************************************* 
-opCLR       MOVE.B  #$43, (A2)+     *'C' to buffer
-            MOVE.B  #$4C, (A2)+     *'L' to buffer
-            MOVE.B  #$52, (A2)+     *'R' to buffer
-            MOVE.B  #$2E, (A2)+     *'.' to buffer
-            JSR     SIZE2BUFFER
-            MOVE.B  #$20, (A2)+     *' ' to buffer
-            MOVE.B  #$20, (A2)+     *' ' to buffer
-            JSR     GETEA
-endopCLR    RTS                     *return
+            ANDI.W  #$0100,D3           * Test isolate 8th bit for LEA
+            CMP.W   #$0100,D3           * Test if LEA
+            BEQ     opLEA               * Yes finish testing for LEA
+            MOVE.W  D7,D3               * Copy fresh copy of instruction to shift
+            MOVE.B  #8,D4          * Load 8 bit shifter
+            LSR.W   D4,D3               * Shift current instruction
+            ANDI.W  #$000F,D3           * Isolate last 4 bits (LSB)
+            MULU    #6,D3               * Form offset for next JMP table
+            LEA     op0100table,A6         * Load next JMP table 
+            JSR     00(A6,D3)           * Jump to next instruction per next 4 bits
+            JMP     endop0100            * Once returned from jump table, skip to end
+endop0100   RTS         
 **LEA******************************************************* 
 opLEA       MOVE.B  #$4C, (A2)+     *'L' to buffer
             MOVE.B  #$45, (A2)+     *'E' to buffer
@@ -496,6 +531,132 @@ opLEA       MOVE.B  #$4C, (A2)+     *'L' to buffer
             MOVE.B  #$41,(A2)+      *'A' to buffer
             JSR     REG2BUFFER
 endopLEA    RTS                     *return   
+                      
+*==========================================================
+*  ___ _____ _   ___ _____   _____ _   ___ _    ___ 
+* / __|_   _/_\ | _ \_   _| |_   _/_\ | _ ) |  | __|
+* \__ \ | |/ _ \|   / | |     | |/ _ \| _ \ |__| _| 
+* |___/ |_/_/ \_\_|_\ |_|     |_/_/ \_\___/____|___|
+*                                                  
+*0100 SECOND LAYER OPCODE TABLE SUBROUTINES 
+op0100table
+            JMP     op0100_0000   *BADINST          
+            JMP     op0100_0001   *BADINST           
+            JMP     op0100_0010   *CLR
+            JMP     op0100_0011   *BADINST
+            JMP     op0100_0100   *NEG*
+            JMP     op0100_0101   *BADINST
+            JMP     op0100_0110   *NOT*
+            JMP     op0100_0111   *BADINST
+            JMP     op0100_1000   *SWAP*
+            JMP     op0100_1001   *BADINST
+            JMP     op0100_1010   *BADINST
+            JMP     op0100_1011   *BADINST
+            JMP     op0100_1100   *BADINST
+            JMP     op0100_1101   *BADINST
+            JMP     op0100_1110   *NOP*,JMP,JSR,RTS
+            JMP     op0100_1111   *BADINST
+endop0100table   
+            RTS                   *return
+**0000 BADINST**********************************************
+op0100_0000 JSR     BADINST
+endop0100_0000
+            RTS
+**0001 BADINST**********************************************          
+op0100_0001 JSR     BADINST          
+endop0100_0001
+            RTS            
+**0010 CLR************************************************** 
+op0100_0010 MOVE.B  #$43, (A2)+     *'C' to buffer
+            MOVE.B  #$4C, (A2)+     *'L' to buffer
+            MOVE.B  #$52, (A2)+     *'R' to buffer
+            MOVE.B  #$2E, (A2)+     *'.' to buffer
+            JSR     SIZE2BUFFER
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            JSR     GETEA
+endop0100_0010    
+            RTS                     *return
+**0011 BADINST**********************************************          
+op0100_0011 JSR     BADINST          
+endop0100_0011
+            RTS  
+**0100 NEG************************************************** 
+op0100_0100 MOVE.B  #$4E, (A2)+     *'N' to buffer
+            MOVE.B  #$45, (A2)+     *'E' to buffer
+            MOVE.B  #$47, (A2)+     *'G' to buffer
+            MOVE.B  #$2E, (A2)+     *'.' to buffer
+            JSR     SIZE2BUFFER
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            JSR     GETEA
+endop0100_0100   
+            RTS                     *return
+**0101 BADINST**********************************************          
+op0100_0101 JSR     BADINST          
+endop0100_0101
+            RTS  
+**0110 NOT************************************************** 
+op0100_0110 
+            MOVE.B  #$4E, (A2)+     *'N' to buffer
+            MOVE.B  #$4F, (A2)+     *'O' to buffer
+            MOVE.B  #$54, (A2)+     *'T' to buffer
+            MOVE.B  #$2E, (A2)+     *'.' to buffer
+            JSR     SIZE2BUFFER
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            MOVE.B  #$20, (A2)+     *' ' to buffer
+            JSR     GETEA
+endop0100_0110
+            RTS                     *return
+**0111 BADINST**********************************************          
+op0100_0111 JSR     BADINST          
+endop0100_0111
+            RTS 
+**1000 SWAP*************************************************          
+op0100_1000 JSR     BADINST     *SWAP not supported     
+endop0100_1000
+            RTS  
+**1001 BADINST**********************************************           
+op0100_1001 JSR     BADINST          
+endop0100_1001
+            RTS 
+**1010 BADINST**********************************************           
+op0100_1010 JSR     BADINST          
+endop0100_1010
+            RTS 
+**1011 BADINST**********************************************           
+op0100_1011 JSR     BADINST          
+endop0100_1011
+            RTS 
+**1100 BADINST**********************************************           
+op0100_1100 JSR     BADINST          
+endop0100_1100
+            RTS 
+**1101 BADINST**********************************************           
+op0100_1101 JSR     BADINST          
+endop0100_1101
+            RTS 
+***1110 NOP*,RTS,JSR,JMP************************************
+op0100_1110:                       
+            JSR     GETSIZE
+            CMPI.B  #%10, D3
+            BEQ     opJSR
+            CMPI.B  #%11, D3
+            BEQ     opJMP
+            CMP.W   #$4E75, D7      *absolute binary value
+            BEQ     opRTS           * 0100 1110 0111 0101
+            CMP.W   #$4E71, D7      *absolute binary value
+            BNE     BADINST         * 0100 1110 0111 0001
+**NOP*******************************************************            
+opNOP       MOVE.B  #$4E, (A2)+     *'N' to buffer
+            MOVE.B  #$4F, (A2)+     *'O' to buffer
+            MOVE.B  #$50, (A2)+     *'P' to buffer
+endopNOP    RTS                     *return
+**RTS*******************************************************
+opRTS       MOVE.B  #$52, (A2)+     *'R' to buffer
+            MOVE.B  #$54, (A2)+     *'T' to buffer
+            MOVE.B  #$53, (A2)+     *'S' to buffer
+endopRTS    RTS                     *return
 **JSR*******************************************************           
 opJSR       MOVE.B  #$4A, (A2)+     *'J' to buffer
             MOVE.B  #$53, (A2)+     *'S' to buffer
@@ -509,74 +670,19 @@ opJMP       MOVE.B  #$4A, (A2)+     *'J' to buffer
             MOVE.B  #$50, (A2)+     *'P' to buffer
             MOVE.B  #$20, (A2)+     *' ' to buffer
             JSR     GETEA
-endopJMP    RTS                     *return                 
-**NEG******************************************************* 
-opNEG       MOVE.B  #$4E, (A2)+     *'N' to buffer
-            MOVE.B  #$45, (A2)+     *'E' to buffer
-            MOVE.B  #$47, (A2)+     *'G' to buffer
-            MOVE.B  #$2E, (A2)+     *'.' to buffer
-            JSR     SIZE2BUFFER
-            MOVE.B  #$20, (A2)+     *' ' to buffer
-            MOVE.B  #$20, (A2)+     *' ' to buffer
-            JSR     GETEA
-endopNEG    RTS                     *return  
-**NOT******************************************************* 
-opNOT       MOVE.B  #$4E, (A2)+     *'N' to buffer
-            MOVE.B  #$4F, (A2)+     *'O' to buffer
-            MOVE.B  #$54, (A2)+     *'T' to buffer
-            MOVE.B  #$2E, (A2)+     *'.' to buffer
-            JSR     SIZE2BUFFER
-            MOVE.B  #$20, (A2)+     *' ' to buffer
-            MOVE.B  #$20, (A2)+     *' ' to buffer
-            JSR     GETEA
-endopNOT    RTS                     *return
-**NOP*******************************************************            
-opNOP       MOVE.B  #$4E, (A2)+     *'N' to buffer
-            MOVE.B  #$4F, (A2)+     *'O' to buffer
-            MOVE.B  #$50, (A2)+     *'P' to buffer
-endopNOP    RTS                     *return
-**RTS*******************************************************
-opRTS       MOVE.B  #$52, (A2)+     *'R' to buffer
-            MOVE.B  #$54, (A2)+     *'T' to buffer
-            MOVE.B  #$53, (A2)+     *'S' to buffer
-endopRTS    RTS                     *return
-**op0100*1110***********************************************
-op01001110:
-            JSR     GETSIZE
-            CMP.W   #$4E71, D3
-            BEQ     opRTS
-            CMPI.B  #%10, D3
-            BEQ     opJSR
-            CMPI.B  #%11, D3
-            BEQ     opJMP
-            CMP.W   #$4E71, D3
-            BNE     BADINST
-endop01001110            
-            RTS                     *return
-**MOVEM*****************************************************
-opMOVEM
-endopMOVEM
-**JMP TABLE*************************************************   
-* 0100 1010 0000 0000 
-*      ^--^          
-code0100L1_table 
-            JMP     BADINST         *0000          
-            JMP     BADINST         *0001           
-            JMP     opCLR           *0010
-            JMP     BADINST         *0011
-            JMP     opNEG           *0100
-            JMP     BADINST         *0101
-            JMP     opNOT           *0110
-            JMP     BADINST         *0111
-            JMP     opMOVEM         *1000
-            JMP     BADINST         *1001
-            JMP     BADINST         *1010
-            JMP     BADINST         *1011
-            JMP     BADINST         *1100
-            JMP     BADINST         *1101
-            JMP     op01001110      *1110
-            JMP     BADINST         *1111
-endop0100   RTS                     *return
+endopJMP    RTS                     *return                                 
+endop0100_1110          
+            RTS                     *return           
+**1111 BADINST***************************************************           
+op0100_1111 JSR     BADINST          
+endop0100_1111
+            RTS 
+***********************************************************
+*  ___ _  _ ___    _____ _   ___ _    ___ 
+* | __| \| |   \  |_   _/_\ | _ ) |  | __|
+* | _|| .` | |) |   | |/ _ \| _ \ |__| _| 
+* |___|_|\_|___/    |_/_/ \_\___/____|___|
+*                                                 
 ************************************************************  
 *OPCODE: 0101
 *BAD INSTRUCTION
@@ -906,7 +1012,7 @@ endea000    RTS                         *return
 *Address Register*******************************************
 eacode001   MOVE.W      D7, D3          *move to utility
             ANDI.W      #$7, D3         *isolate
-            MOVE.B      #$41, D3        *'A' to buffer
+            MOVE.B      #$41, (A2)+     *'A' to buffer
             ADD.B       #$30, D3        *convert register number to ascii
             MOVE.B      D3,(A2)+        *to buffer  
 endea001    RTS                         *return
@@ -1014,6 +1120,7 @@ SWAPREG:
             OR.W    D3,D4           *store bits for swap
             MOVE.W  D7,D3           *move to utility
             LSR.W   #3,D3           *shift bits 6-8 to normal ea position
+            ANDI.W  #$0038, D3
             OR.W    D3,D4           *
             JSR     srSize          *get mode size
             MOVE.W  D4,D7           *load swap register
@@ -1098,8 +1205,8 @@ endR2B      RTS                      *return
 ************************************************************
 *SIZE2BUFFER
 *Description: Isolates and converts the instruction size and sends it to the output buffer
-*              Byte, word, long read word in memory for instructions that utilize immediate
-*              data.  At the end of the instruction, the working memory address is advanced.
+*             Byte, word, long read word in memory for instructions that utilize immediate
+*             data.  At the end of the instruction, the working memory address is advanced.
 *Registers Used:
 *D3 - size bit
 *A2 - buffer address of decoded instruction
@@ -1125,8 +1232,15 @@ ends2b      RTS                     *return
 
 ************************************************************
 *BYTE2BUFFER
-*Description: Converts byte and sends it to the output buffer
+*Description: Converts a byte in memory to ASCII and sends it
+*            to the buffer.
 *Buffer: $XX
+*Registers Used:
+*D2 - utility register
+*D3 - utility register
+*D4 - counter
+*A0 - working address
+*A2 - buffer address of decoded instruction
 ************************************************************
 BYTE2BUFFER:  
             MOVE.B  #$24, (A2)+     *'$' to buffer
@@ -1152,7 +1266,15 @@ endB2B      MOVE.W      D7, D3              *load from utility
 
 ************************************************************
 *WORD2BUFFER
+*Description: Converts a word in memory to ASCII and sends it
+*            to the buffer.
 *Buffer: $XXXX
+*Registers Used:
+*D2 - utility register
+*D3 - utility register
+*D4 - counter
+*A0 - working address
+*A2 - buffer address of decoded instruction
 ************************************************************
 WORD2BUFFER: 
             MOVE.B  #$24, (A2)+     *'$' to buffer
@@ -1178,33 +1300,44 @@ endW2B      MOVE.W      D7, D3              *load from utility
  
 ************************************************************
 *LONG2BUFFER
+*Description: Converts a long word in memory to ASCII and sends
+*            it to the buffer.
 *Buffer: $XXXXXXXX
+*Registers Used:
+*D2 - utility register
+*D3 - utility register
+*D4 - counter
+*A0 - working address
+*A2 - buffer address of decoded instruction
 ************************************************************           
 LONG2BUFFER:
             MOVE.B  #$24, (A2)+     *'$' to buffer
-            CLR.L       D4                  *clear counter
-            *ADDQ.W      #2, A0                  *clear counter
+            CLR.L       D4          *clear counter
+            *ADDQ.W      #2, A0     *clear counter
             MOVE.L      (A0), D2 
-            MOVE.B      #8, D4              *load counter
+            MOVE.B      #8, D4      *load counter
 **LOOP******************************************************
 L2BLoop                 
-            CMP.B       #$00, D4            *end?
-            BEQ         endL2B              *
-            ROL.L       #4, D2              *
-            MOVE.W      D2, D3              *
-            ANDI.W      #$000F, D3          *isolate
-            JSR         HEX2ASCII           *to buffer           
-            SUBQ.B      #$1, D4             *subtract from counter
-            JMP         L2BLoop             *loop
+            CMP.B       #$00, D4    *end?
+            BEQ         endL2B      *
+            ROL.L       #4, D2      *
+            MOVE.W      D2, D3      *
+            ANDI.W      #$000F, D3  *isolate
+            JSR         HEX2ASCII   *to buffer           
+            SUBQ.B      #$1, D4     *subtract from counter
+            JMP         L2BLoop     *loop
             
-endL2B      MOVE.W      D7, D3              *load from utility           
-            ADDQ.W      #4, A0              *advancing memory pointer by word  
+endL2B      MOVE.W      D7, D3      *load from utility           
+            ADDQ.W      #4, A0      *advancing memory pointer by word  
             RTS  
 *===========================================================
            
 ************************************************************
 *IMM2BUFER
 *Description: Converts immediate data and sends to buffer
+*Registers Used:
+*D3 - utility register
+*A2 - buffer address of decoded instruction
 ************************************************************ 
 IMM2BUFER:
             MOVE.B  #$23, (A2)+     *'#' to buffer
@@ -1221,39 +1354,42 @@ endI2B      RTS                     *return
 ************************************************************
 *BADINST
 *Description: A bad instruction has been called, print to console
+*Buffer: '$0x00000000   DATA    BadWord'
 *Registers Used:
+*D3 - utility register
 *D5 - flag condition
 *A2 - buffer address of decoded instruction
 *A2 - working address
 ************************************************************
 BADINST:
-            MOVE.B  #0, D5
-            LEA     buf, A2
-            JSR     ADDRESS
-            
+**ADDRESS***************************************************
+            MOVE.B  #0, D5          *set flag to bad for double EA check
+            LEA     buf, A2         *reload buffer
+            JSR     ADDRESS         *address to buffer
+**DATA******************************************************        
             MOVE.B  #$44,(A2)+      *'D' to buffer
             MOVE.B  #$41,(A2)+      *'A' to buffer
             MOVE.B  #$54,(A2)+      *'T' to buffer
             MOVE.B  #$41,(A2)+      *'A' to buffer
-            MOVE.B  #$9, (A2)+        *tab buffer
+            MOVE.B  #$9, (A2)+      *tab buffer
             MOVE.B  #$24,(A2)+      *'$' to buffer
-            
-            MOVE.W  (A0), D3
-            MOVE.B  #12, D4
-            JSR     SHIFT
-            JSR     Hex2ASCII
-            MOVE.W  (A0), D3
-            MOVE.B  #8, D4
-            JSR     SHIFT
-            JSR     Hex2ASCII
-            MOVE.W  (A0), D3
-            MOVE.B  #4, D4
-            JSR     SHIFT
-            JSR     Hex2ASCII
-            MOVE.W  (A0), D3
-            ANDI.W  #$000F, D3
-            JSR     Hex2ASCII
-endbadinst  RTS
+**BAD WORD**************************************************            
+            MOVE.W  (A0), D3        *
+            MOVE.B  #12, D4         *$1254
+            JSR     SHIFT           * ^
+            JSR     Hex2ASCII       *to ASCII
+            MOVE.W  (A0), D3        *
+            MOVE.B  #8, D4          *$1254
+            JSR     SHIFT           *  ^
+            JSR     Hex2ASCII       *to ASCII
+            MOVE.W  (A0), D3        *
+            MOVE.B  #4, D4          *$1254
+            JSR     SHIFT           *   ^
+            JSR     Hex2ASCII       *to ASCII
+            MOVE.W  (A0), D3        *$1254
+            ANDI.W  #$000F, D3      *    ^
+            JSR     Hex2ASCII       *to ASCII
+endbadinst  RTS                     *return
 *===========================================================    
 
 ************************************************************
@@ -1266,7 +1402,18 @@ endbadinst  RTS
 *END
 *Description: Ends program
 ************************************************************          
-END:        MOVE.B  #13,D0              *load task
+END:        
+            MOVE.B  #14, D0
+            LEA     strBadInst, A1
+            TRAP    #15
+
+            MOVE.B  badInstCount, D1
+            MOVE.B  #3, D0
+            TRAP    #15
+            
+            JSR     dis_cr
+            
+            MOVE.B  #13,D0              *load task
             LEA     str_end,A1            *load string
             TRAP    #15                 *display
 
@@ -1343,9 +1490,11 @@ str_end     dc.b '                                                              
             dc.b '|  $$$$$$/|  $$$$$$/| $$ \/  | $$| $$      | $$$$$$$$| $$$$$$$$   | $$   | $$$$$$$$',CR,LF
             dc.b ' \______/  \______/ |__/     |__/|__/      |________/|________/   |__/   |________/',0,CR,LF
 
-
-bad_inst    dc.w    'BAD INSTRUCTION',0
-
+strBadInst      dc.b    '                            ',CR,LF
+                dc.b    '                            ',CR,LF
+                dc.b    '                            ',CR,LF
+                dc.b    'Number of bad instructions: ',0
+badInstCount    dc.b    0
 *v_srt_add   ds.l    1               *store start address
 *v_end_add   ds.l    1               *store end address
 *v_test      ds.l    1               *start a temp value

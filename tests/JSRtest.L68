@@ -1,0 +1,47 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 12:08:34 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :JSR Test File
+00000000                             3  * Written by :Scott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble JSR instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   424
+00000400                            12  TEST
+00000400                            13  label1
+00000400  4E90                      14      JSR       (A0)
+00000402  4EB8 1234                 15      JSR       $1234
+00000406  4EB9 12345678             16      JSR       $12345678
+0000040C                            17  label2
+0000040C  4EB8 0400                 18      JSR       label1
+00000410  4EB8 040C                 19      JSR       label2
+00000414                            20  label3
+00000414  4EB8 0414                 21      JSR       label3
+00000418  4EB8 0400                 22      JSR       label1
+0000041C  4EB8 040C                 23      JSR       label2
+00000420  4EB8 0414                 24      JSR       label3
+00000424                            25  
+00000424                            26  endTEST
+00000424  FFFF FFFF                 27      SIMHALT             ; halt simulator
+00000428                            28  
+00000428                            29      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             424
+LABEL1              400
+LABEL2              40C
+LABEL3              414
+START               400
+TEST                400

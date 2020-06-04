@@ -1,0 +1,43 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 1:44:09 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :LEA Test File
+00000000                             3  * Written by :Scott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble LEA instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   
+00000400                            12  TEST
+00000400                            13  *registers
+00000400  41D0                      14      LEA     (A0),A0
+00000402  41D5                      15      LEA     (A5),A0
+00000404  41D7                      16      LEA     (A7),A0
+00000406  4FD0                      17      LEA     (A0),A7
+00000408  4FD5                      18      LEA     (A5),A7
+0000040A  4FD7                      19      LEA     (A7),A7
+0000040C                            20  *immediate/ absolute
+0000040C  41F8 0012                 21      LEA       $12,A0
+00000410  41F8 1234                 22      LEA       $1234,A0
+00000414  41F9 12345678             23      LEA       $12345678,A0
+0000041A                            24  
+0000041A                            25  endTEST
+0000041A  FFFF FFFF                 26      SIMHALT             ; halt simulator
+0000041E                            27  
+0000041E                            28      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             41A
+START               400
+TEST                400

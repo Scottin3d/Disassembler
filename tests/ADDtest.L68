@@ -1,0 +1,92 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 2:50:54 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :ADD Test File
+00000000                             3  * Written by :Scott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble ADD instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   4C2
+00000400                            12  TEST
+00000400                            13  *registers/ address
+00000400  D401                      14      ADD.B     D1,D2
+00000402  D311                      15      ADD.B     D1,(A1)
+00000404  D319                      16      ADD.B     D1,(A1)+
+00000406  D321                      17      ADD.B     D1,-(A1)
+00000408  D211                      18      ADD.B     (A1),D1
+0000040A  D219                      19      ADD.B     (A1)+,D1
+0000040C  D221                      20      ADD.B     -(A1),D1
+0000040E  D441                      21      ADD.W     D1,D2
+00000410  D351                      22      ADD.W     D1,(A1)
+00000412  D359                      23      ADD.W     D1,(A1)+
+00000414  D361                      24      ADD.W     D1,-(A1)
+00000416  D251                      25      ADD.W     (A1),D1
+00000418  D259                      26      ADD.W     (A1)+,D1
+0000041A  D261                      27      ADD.W     -(A1),D1
+0000041C  D481                      28      ADD.L     D1,D2
+0000041E  D391                      29      ADD.L     D1,(A1)
+00000420  D399                      30      ADD.L     D1,(A1)+
+00000422  D3A1                      31      ADD.L     D1,-(A1)
+00000424  D291                      32      ADD.L     (A1),D1
+00000426  D299                      33      ADD.L     (A1)+,D1
+00000428  D2A1                      34      ADD.L     -(A1),D1
+0000042A  D4C1                      35      ADDA.W        D1,A2
+0000042C  D4D1                      36      ADDA.W        (A1),A2
+0000042E  D4D9                      37      ADDA.W        (A1)+,A2
+00000430  D4E1                      38      ADDA.W        -(A1),A2
+00000432  D5C1                      39      ADDA.L        D1,A2
+00000434  D5D1                      40      ADDA.L        (A1),A2
+00000436  D5D9                      41      ADDA.L        (A1)+,A2
+00000438  D5E1                      42      ADDA.L        -(A1),A2
+0000043A                            43  *immediate/ absolute
+0000043A  D338 0012                 44      ADD.B     D1,$12
+0000043E  D338 1234                 45      ADD.B     D1,$1234
+00000442  D339 12345678             46      ADD.B     D1,$12345678
+00000448  D238 0012                 47      ADD.B     $12,D1
+0000044C  D238 1234                 48      ADD.B     $1234,D1
+00000450  D239 12345678             49      ADD.B     $12345678,D1
+00000456  0601 0012                 50      ADD.B     #$12,D1 *
+0000045A  D378 0012                 51      ADD.W     D1,$12
+0000045E  D378 1234                 52      ADD.W     D1,$1234
+00000462  D379 12345678             53      ADD.W     D1,$12345678
+00000468  D278 0012                 54      ADD.W     $12,D1
+0000046C  D278 1234                 55      ADD.W     $1234,D1
+00000470  D279 12345678             56      ADD.W     $12345678,D1
+00000476  0641 1234                 57      ADD.W     #$1234,D1
+0000047A  D3B8 0012                 58      ADD.L     D1,$12
+0000047E  D3B8 1234                 59      ADD.L     D1,$1234
+00000482  D3B9 12345678             60      ADD.L     D1,$12345678
+00000488  D2B8 0012                 61      ADD.L     $12,D1
+0000048C  D2B8 1234                 62      ADD.L     $1234,D1
+00000490  D2B9 12345678             63      ADD.L     $12345678,D1
+00000496  0681 12345678             64      ADD.L     #$12345678,D1
+0000049C  D4F8 0012                 65      ADDA.W    $12,A2
+000004A0  D4F8 1234                 66      ADDA.W    $1234,A2
+000004A4  D4F9 12345678             67      ADDA.W    $12345678,A2
+000004AA  D4FC 1234                 68      ADDA.W    #$1234,A2
+000004AE  D5F8 0012                 69      ADDA.L    $12,A2
+000004B2  D5F8 1234                 70      ADDA.L    $1234,A2
+000004B6  D5F9 12345678             71      ADDA.L    $12345678,A2
+000004BC  D5FC 12345678             72      ADDA.L    #$12345678,A2 *
+000004C2                            73  
+000004C2                            74  endTEST
+000004C2  FFFF FFFF                 75      SIMHALT             ; halt simulator
+000004C6                            76  
+000004C6                            77      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             4C2
+START               400
+TEST                400

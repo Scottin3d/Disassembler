@@ -1,0 +1,54 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 2:27:57 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :OR Test File
+00000000                             3  * Written by :Scott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble OR instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   550
+00000400                            12  TEST
+00000400  8401                      13      OR.B     D1,D2
+00000402  8311                      14      OR.B     D1,(A1)
+00000404  8319                      15      OR.B     D1,(A1)+
+00000406  8321                      16      OR.B     D1,-(A1)
+00000408  8211                      17      OR.B     (A1),D1
+0000040A  8219                      18      OR.B     (A1)+,D1
+0000040C  8221                      19      OR.B     -(A1),D1
+0000040E  8441                      20      OR.W     D1,D2
+00000410  8351                      21      OR.W     D1,(A1)
+00000412  8359                      22      OR.W     D1,(A1)+
+00000414  8361                      23      OR.W     D1,-(A1)
+00000416  8251                      24      OR.W     (A1),D1
+00000418  8259                      25      OR.W     (A1)+,D1
+0000041A  8261                      26      OR.W     -(A1),D1
+0000041C  8481                      27      OR.L     D1,D2
+0000041E  8391                      28      OR.L     D1,(A1)
+00000420  8399                      29      OR.L     D1,(A1)+
+00000422  83A1                      30      OR.L     D1,-(A1)
+00000424  8291                      31      OR.L     (A1),D1
+00000426  8299                      32      OR.L     (A1)+,D1
+00000428  82A1                      33      OR.L     -(A1),D1
+0000042A                            34      
+0000042A                            35  
+0000042A                            36  endTEST
+0000042A  FFFF FFFF                 37      SIMHALT             ; halt simulator
+0000042E                            38  
+0000042E                            39      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             42A
+START               400
+TEST                400

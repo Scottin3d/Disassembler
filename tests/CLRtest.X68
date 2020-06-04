@@ -7,6 +7,8 @@
     ORG    $400
 START:                  ; first instruction of program
 
+*start: 400
+*end:   45A
 TEST
 *various size
     CLR.B     D0
@@ -49,6 +51,7 @@ endTEST
     SIMHALT             ; halt simulator
 
     END    START        ; last line of source
+
 
 *~Font name~Courier New~
 *~Font size~10~

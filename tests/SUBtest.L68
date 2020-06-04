@@ -1,0 +1,93 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 2:10:34 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :SUB Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble SUB instructions
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  *ERROR REPORT
+00000000                             8  *Memory Address*  *Word Output* 
+00000000                             9  *45A                0012
+00000000                            10  *45C                9378
+00000000                            11  *47A                1234
+00000000                            12  *47C                93B8
+00000000                            13  
+00000000                            14  
+00000400                            15      ORG    $400
+00000400                            16  START:                  ; first instruction of program
+00000400                            17  
+00000400                            18  *start: 400
+00000400                            19  *end:   498
+00000400                            20  TEST
+00000400                            21  *registers/ address
+00000400  9401                      22      SUB.B     D1,D2
+00000402  9311                      23      SUB.B     D1,(A1)
+00000404  9319                      24      SUB.B     D1,(A1)+
+00000406  9321                      25      SUB.B     D1,-(A1)
+00000408  9211                      26      SUB.B     (A1),D1
+0000040A  9219                      27      SUB.B     (A1)+,D1
+0000040C  9221                      28      SUB.B     -(A1),D1
+0000040E  9441                      29      SUB.W     D1,D2
+00000410  92C1                      30      SUB.W     D1,A1     *error
+00000412  9351                      31      SUB.W     D1,(A1)
+00000414                            32      *break
+00000414  9359                      33      SUB.W     D1,(A1)+
+00000416  9361                      34      SUB.W     D1,-(A1)
+00000418  9249                      35      SUB.W     A1,D1
+0000041A  9251                      36      SUB.W     (A1),D1
+0000041C  9259                      37      SUB.W     (A1)+,D1
+0000041E  9261                      38      SUB.W     -(A1),D1
+00000420  9481                      39      SUB.L     D1,D2
+00000422  93C1                      40      SUB.L     D1,A1
+00000424  9391                      41      SUB.L     D1,(A1)
+00000426  9399                      42      SUB.L     D1,(A1)+
+00000428                            43      *break
+00000428  93A1                      44      SUB.L     D1,-(A1)
+0000042A  9289                      45      SUB.L     A1,D1
+0000042C  9291                      46      SUB.L     (A1),D1
+0000042E  9499                      47      SUB.L     (A1)+,D2
+00000430  96A1                      48      SUB.L     -(A1),D3
+00000432  9851                      49      SUB.W     (A1),D4
+00000434  9A59                      50      SUB.W     (A1)+,D5
+00000436  9C61                      51      SUB.W     -(A1),D6
+00000438  9E81                      52      SUB.L     D1,D7
+0000043A  9BC1                      53      SUB.L     D1,A5  
+0000043C                            54  *absolute/ immediate
+0000043C  9338 0012                 55      SUB.B     D1,$12
+00000440  9338 1234                 56      SUB.B     D1,$1234
+00000444  9339 12345678             57      SUB.B     D1,$12345678
+0000044A  9238 0012                 58      SUB.B     $12,D1
+0000044E  9238 1234                 59      SUB.B     $1234,D1
+00000452  9239 12345678             60      SUB.B     $12345678,D1
+00000458  0401 0012                 61      SUB.B     #$12,D1       *error
+0000045C  9378 0012                 62      SUB.W     D1,$12        *error
+00000460  9378 1234                 63      SUB.W     D1,$1234
+00000464  9379 12345678             64      SUB.W     D1,$12345678
+0000046A                            65      *break
+0000046A  9278 0012                 66      SUB.W     $12,D1
+0000046E  9278 1234                 67      SUB.W     $1234,D1
+00000472  9279 12345678             68      SUB.W     $12345678,D1
+00000478  0441 1234                 69      SUB.W     #$1234,D1
+0000047C  93B8 0012                 70      SUB.L     D1,$12        *error
+00000480  93B8 1234                 71      SUB.L     D1,$1234      *error
+00000484  93B9 12345678             72      SUB.L     D1,$12345678
+0000048A  92B8 0012                 73      SUB.L     $12,D1
+0000048E  92B8 1234                 74      SUB.L     $1234,D1
+00000492  92B9 12345678             75      SUB.L     $12345678,D1
+00000498                            76  endTEST
+00000498  FFFF FFFF                 77      SIMHALT             ; halt simulator
+0000049C                            78      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             498
+START               400
+TEST                400

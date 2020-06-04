@@ -1,0 +1,43 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 4:47:13 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :MOVEA Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble MOVEA instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   414
+00000400                            12  TEST
+00000400  3040                      13      MOVEA.W    D0,A0
+00000402  3048                      14      MOVEA.W    A0,A0
+00000404  3050                      15      MOVEA.W    (A0),A0
+00000406  3058                      16      MOVEA.W    (A0)+,A0
+00000408  3060                      17      MOVEA.W    -(A0),A0
+0000040A  2040                      18      MOVEA.L    D0,A0
+0000040C  2048                      19      MOVEA.L    A0,A0
+0000040E  2050                      20      MOVEA.L    (A0),A0
+00000410  2058                      21      MOVEA.L    (A0)+,A0
+00000412  2060                      22      MOVEA.L    -(A0),A0  
+00000414                            23     
+00000414                            24  
+00000414                            25  endTEST
+00000414  FFFF FFFF                 26      SIMHALT             ; halt simulator
+00000418                            27  
+00000418                            28      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             414
+START               400
+TEST                400

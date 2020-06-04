@@ -1,0 +1,76 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 2:24:57 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :AND Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble AND instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   550
+00000400                            12  TEST
+00000400                            13  *register/ address
+00000400  C401                      14      AND.B     D1,D2
+00000402  C311                      15      AND.B     D1,(A1)
+00000404  C319                      16      AND.B     D1,(A1)+
+00000406  C321                      17      AND.B     D1,-(A1)
+00000408  C211                      18      AND.B     (A1),D1
+0000040A  C219                      19      AND.B     (A1)+,D1
+0000040C  C221                      20      AND.B     -(A1),D1
+0000040E  C441                      21      AND.W     D1,D2
+00000410  C351                      22      AND.W     D1,(A1)
+00000412  C359                      23      AND.W     D1,(A1)+
+00000414  C361                      24      AND.W     D1,-(A1)
+00000416  C251                      25      AND.W     (A1),D1
+00000418  C259                      26      AND.W     (A1)+,D1
+0000041A  C261                      27      AND.W     -(A1),D1
+0000041C  C481                      28      AND.L     D1,D2
+0000041E  C391                      29      AND.L     D1,(A1)
+00000420  C399                      30      AND.L     D1,(A1)+
+00000422  C3A1                      31      AND.L     D1,-(A1)
+00000424  C291                      32      AND.L     (A1),D1
+00000426  C299                      33      AND.L     (A1)+,D1
+00000428  C2A1                      34      AND.L     -(A1),D1
+0000042A                            35  *immediate/ absolute
+0000042A  C338 0012                 36      AND.B     D1,$12
+0000042E  C338 1234                 37      AND.B     D1,$1234
+00000432  C339 12345678             38      AND.B     D1,$12345678
+00000438  C238 0012                 39      AND.B     $12,D1
+0000043C  C238 1234                 40      AND.B     $1234,D1
+00000440  C239 12345678             41      AND.B     $12345678,D1
+00000446  C23C 0012                 42      AND.B     #$12,D1
+0000044A  C378 0012                 43      AND.W     D1,$12
+0000044E  C378 1234                 44      AND.W     D1,$1234
+00000452  C379 12345678             45      AND.W     D1,$12345678
+00000458  C278 0012                 46      AND.W     $12,D1
+0000045C  C278 1234                 47      AND.W     $1234,D1
+00000460  C279 12345678             48      AND.W     $12345678,D1
+00000466  C27C 1234                 49      AND.W     #$1234,D1
+0000046A  C3B8 0012                 50      AND.L     D1,$12
+0000046E  C3B8 1234                 51      AND.L     D1,$1234
+00000472  C3B9 12345678             52      AND.L     D1,$12345678
+00000478  C2B8 0012                 53      AND.L     $12,D1
+0000047C  C2B8 1234                 54      AND.L     $1234,D1
+00000480  C2B9 12345678             55      AND.L     $12345678,D1
+00000486  C2BC 12345678             56      AND.L     #$12345678,D1
+0000048C                            57  
+0000048C                            58  endTEST
+0000048C  FFFF FFFF                 59      SIMHALT             ; halt simulator
+00000490                            60  
+00000490                            61      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             48C
+START               400
+TEST                400

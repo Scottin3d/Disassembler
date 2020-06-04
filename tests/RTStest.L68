@@ -1,0 +1,44 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 1:04:09 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :MOVE Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble MOVE instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   550
+00000400                            12  TEST
+00000400  4EF9 00000414             13      JMP label2
+00000406  4EF9 00000414             14      JMP label2
+0000040C  4EF9 00000416             15      JMP label3
+00000412                            16  
+00000412                            17  label1
+00000412  4E75                      18       RTS
+00000414                            19  label2
+00000414  4E75                      20       RTS
+00000416                            21  label3
+00000416  4E75                      22       RTS
+00000418                            23  endTEST
+00000418  FFFF FFFF                 24      SIMHALT             ; halt simulator
+0000041C                            25  
+0000041C                            26      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             418
+LABEL1              412
+LABEL2              414
+LABEL3              416
+START               400
+TEST                400
