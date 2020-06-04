@@ -460,7 +460,26 @@ endop0001   RTS                     *return
 ************************************************************  
 * Case for: 0010
 * --(MOVE.L, MOVEA.L)
-opcode0010: JMP          BADINST
+opcode0010: 
+               MOVE.L   #$4D4F5645, (A2)+ ** Loads "MOVE" INTO PRINT_BUFFER
+
+               MOVE.W   D7, D3    *Check the destination mode to see if addressing*
+               AND.L    #$01C0, D3 
+               CMPI.L   #$0040, D3 ** compares to see if addressing mode
+               BNE.S    code0010_cont **branches if destination mode is not addressing register
+               MOVE.W   #$412E, (A2)+ **Loads "A." into the print_buffer
+               MOVE.W   #$4C20, (A2)+ **Loads "L   " into the print_buffer
+               BRA      code0010_cont2 **branches back to code
+               
+               
+code0010_cont  MOVE.L #$2E4C2020, (A2)+ **Loads ".L" into the print_buffer 
+               
+code0010_cont2      
+               JSR     GETEA
+               MOVE.B  #$2C, (A2)+     *',' to buffer
+               JSR     SWAPREG         *swap destination and source regs
+               JSR     GETEA 
+
 endop0010   RTS
 *===========================================================
 
@@ -468,6 +487,26 @@ endop0010   RTS
 * Case for: 0011
 * --(MOVE.W, MOVEA.W)
 opcode0011:
+               MOVE.L   #$4D4F5645, (A2)+ ** Loads "MOVE" INTO PRINT_BUFFER
+
+               MOVE.W   D7, D3    *Check the destination mode to see if addressing*
+               AND.L    #$01C0, D3 
+               CMPI.L   #$0040, D3 ** compares to see if addressing mode
+               BNE.S    code0011_cont **branches if destination mode is not addressing register
+               MOVE.W   #$412E, (A2)+ **Loads "A." into the print_buffer
+               MOVE.W   #$5720, (A2)+ **Loads "W   " into the print_buffer
+               BRA      code0011_cont2 **branches back to code
+               
+code0011_cont  MOVE.L   #$2E572020, (A2)+ **Loads ".W" into the print_buffer 
+               
+               
+code0011_cont2 
+               JSR      GETEA
+               MOVE.B   #$2C, (A2)+     *',' to buffer
+               JSR      SWAPREG         *swap destination and source regs
+               JSR      GETEA 
+               RTS
+
 *===========================================================
 
 ************************************************************  
@@ -784,7 +823,7 @@ endea000    RTS                         *return
 *Address Register*******************************************
 eacode001   MOVE.W      D7, D3          *move to utility
             ANDI.W      #$7, D3         *isolate
-            MOVE.B      #$41, D3        *'A' to buffer
+            MOVE.B      #$41, (A2)+     *'A' to buffer
             ADD.B       #$30, D3        *convert register number to ascii
             MOVE.B      D3,(A2)+        *to buffer  
 endea001    RTS                         *return
@@ -900,9 +939,10 @@ SWAPREG:
             ANDI.W  #$0007,D3       *
             OR.W    D3,D4           *store bits for swap
             MOVE.W  D7,D3           *move to utility
+            AND.L   #$01C0, D3      *filter out mode*
             LSR.W   #3,D3           *shift bits 6-8 to normal ea position
             OR.W    D3,D4           *
-            JSR     srSize          *get mode size
+            JSR     srSize        *get mode size
             MOVE.W  D4,D7           *load swap register
 endswap     RTS                     *return
 
@@ -916,7 +956,7 @@ srSize      MOVE.W  D7,D3           *move to utility
             BEQ     srL             *yes
             CMP.B   #$3,D3          *word?
             BNE     BADINST         *No? bad instrustion        
-srW         ORI.W   #$0040,D4       *add size
+srW         ORI.W   #$00C0,D4       *add size
             JMP     endsr           *
 srL         ORI.W   #$0080,D4       *add size
 endsr       RTS                     *return
@@ -1223,6 +1263,7 @@ v_test      ds.l    1               *start a temp value
 
 
     END    START        ; last line of source
+
 
 
 

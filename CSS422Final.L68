@@ -1,6 +1,6 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 05/15/20 11:26:17 AM
+Created On: 5/31/2020 12:26:43 AM
 
 00000000                             1  *-----------------------------------------------------------
 00000000                             2  * Title      :
@@ -16,70 +16,60 @@ Created On: 05/15/20 11:26:17 AM
 00001000                            12  
 00001000                            13  * Put program code here
 00001000                            14  
-00001000  41F9 00001042             15          LEA             MEM_START, A0 *pointer to memory start location
-00001006                            16          
-00001006                            17  START_MSG:
-00001006  103C 000E                 18          MOVE.B          #14, D0
-0000100A  43F9 0000106A             19          LEA             DISPLAY_START_MESSAGE,A1
-00001010  4E4F                      20          TRAP            #15
-00001012                            21      
-00001012                            22  GET_START:    
-00001012  43F9 00001082             23          LEA             DISPLAY_START_ADDRESS, A1
-00001018  4E4F                      24          TRAP            #15
-0000101A  103C 000E                 25          MOVE.B          #14,D0          
-0000101E  4E44                      26          TRAP            #4
-00001020  B2BC 00001000             27          CMP.L           #$1000, D1
-00001026  6D00 0010                 28          BLT             INVALID
-0000102A  B2BC FFFFFFFF             29          CMP.L           #$FFFFFFFF, D1
-00001030  6E00 0006                 30          BGT             INVALID
-00001034                            31          
-00001034  FFFF FFFF                 32      SIMHALT ; halt simulator
-00001038                            33  INVALID:
-00001038  43F9 00001046             34          LEA             DISPLAY_INVALID_MESSAGE, A1
-0000103E  4E4D                      35          TRAP            #13
-00001040  60C4                      36          BRA             START_MSG
-00001042                            37          
-00001042                            38  READ_BIT:
-00001042                            39      *Read first btye of word
-00001042                            40      
-00001042                            41  HEX_DECODE:
-00001042                            42      *Sets each hexbit to register
-00001042                            43  
-00001042                            44  
-00001042                            45  *Subroutines:
-00001042                            46      
-00001042                            47  *00                 
-00001042                            48  *00                 MOVE
-00001042                            49  *00                 MOVEA
-00001042                            50  
-00001042                            51  *01 
-00001042                            52  *01001              MOVEM
-00001042                            53  *0100               LEA
-00001042                            54  *0110               Bcc
-00001042                            55  *0100111010         JSR
-00001042                            56  *0100111001110101   RTS
-00001042                            57  
-00001042                            58  *10
-00001042                            59  *1011               CMP
-00001042                            60  *1000               OR
-00001042                            61  *1001               SUB
-00001042                            62  
-00001042                            63  *11
-00001042                            64  *1100               ADD
-00001042                            65  *1100               AND
-00001042                            66  *1110               LSL
-00001042                            67  *1110000            ASR    
-00001042                            68  
-00001042                            69  * Put variables and constants here 
-00001042                            70  MEM_START               DS.W    1
-00001044                            71  MEM_END                 DS.W    1  
-00001046                            72  
-00001046= 54 68 61 74 20 69 ...     73  DISPLAY_INVALID_MESSAGE DC.B    'That is an invalid memory address',CR,LF,0
-0000106A= 43 53 53 20 34 32 ...     74  DISPLAY_START_MESSAGE   DC.B    'CSS 422 Final Project',CR,LF,0
-00001082= 53 74 61 72 74 69 ...     75  DISPLAY_START_ADDRESS   DC.B    'Starting Memory Location: ',0
-0000109D= 45 6E 64 69 6E 67 ...     76  DISPLAY_END_ADDRESS     DC.B    'Ending Memory Location: ',0
-000010B6                            77  
-000010B6                            78      END    START        ; last line of source
+00001000                            15  
+00001000                            16  START_MSG:
+00001000  43F9 00001028             17          LEA             DISPLAY_START_MESSAGE,A1
+00001006  103C 000E                 18          MOVE.B          #14,D0  
+0000100A  4E4F                      19          TRAP            #15
+0000100C                            20      
+0000100C  43F9 00001040             21          LEA             DISPLAY_START_ADDRESS,A1
+00001012  103C 000E                 22          MOVE.B          #14,D0  
+00001016  4E4F                      23          TRAP            #15
+00001018                            24  
+00001018  103C 0004                 25          MOVE.B          #4,D0          
+0000101C  4E4F                      26          TRAP            #15             
+0000101E  B2BC 000BBDCC             27          CMP.L           #0769484,D1
+00001024                            28  
+00001024  FFFF FFFF                 29      SIMHALT ; halt simulator
+00001028                            30  
+00001028                            31  READ_BIT:
+00001028                            32      *Read first btye of word
+00001028                            33      
+00001028                            34  HEX_DECODE:
+00001028                            35      *Sets each hexbit to register
+00001028                            36  
+00001028                            37  
+00001028                            38  *Subroutines:
+00001028                            39      
+00001028                            40  *00                 
+00001028                            41  *00                 MOVE
+00001028                            42  *00                 MOVEA
+00001028                            43  
+00001028                            44  *01 
+00001028                            45  *01001              MOVEM
+00001028                            46  *0100               LEA
+00001028                            47  *0110               Bcc
+00001028                            48  *0100111010         JSR
+00001028                            49  *0100111001110101   RTS
+00001028                            50  
+00001028                            51  *10
+00001028                            52  *1011               CMP
+00001028                            53  *1000               OR
+00001028                            54  *1001               SUB
+00001028                            55  
+00001028                            56  *11
+00001028                            57  *1100               ADD
+00001028                            58  *1100               AND
+00001028                            59  *1110               LSL
+00001028                            60  *1110000            ASR    
+00001028                            61  
+00001028                            62  * Put variables and constants here
+00001028                            63  
+00001028= 43 53 53 20 34 32 ...     64  DISPLAY_START_MESSAGE   DC.B    'CSS 422 Final Project',CR,LF,0
+00001040= 53 74 61 72 74 69 ...     65  DISPLAY_START_ADDRESS   DC.B    'Starting Memory Location: ',0
+0000105B= 45 6E 64 69 6E 67 ...     66  DISPLAY_END_ADDRESS     DC.B    'Ending Memory Location: ',0
+00001074                            67  
+00001074                            68      END    START        ; last line of source
 
 No errors detected
 No warnings generated
@@ -89,16 +79,11 @@ SYMBOL TABLE INFORMATION
 Symbol-name         Value
 -------------------------
 CR                  D
-DISPLAY_END_ADDRESS  109D
-DISPLAY_INVALID_MESSAGE  1046
-DISPLAY_START_ADDRESS  1082
-DISPLAY_START_MESSAGE  106A
-GET_START           1012
-HEX_DECODE          1042
-INVALID             1038
+DISPLAY_END_ADDRESS  105B
+DISPLAY_START_ADDRESS  1040
+DISPLAY_START_MESSAGE  1028
+HEX_DECODE          1028
 LF                  A
-MEM_END             1044
-MEM_START           1042
-READ_BIT            1042
+READ_BIT            1028
 START               1000
-START_MSG           1006
+START_MSG           1000

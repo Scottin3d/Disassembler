@@ -15,7 +15,7 @@ badflag         EQU     0
 length          EQU     0
 task1           EQU     01                  *
 task2           EQU     02                  *
-print_buffer    EQU $9000
+print_buffer    EQU $8000
 **op_table        EQU     $A100               *OPCODE JUMP TABLE
 **ea_table        EQU     $A200               *EA JUMP TABLE
 **adr_table       EQU     $A300               *ADDRESS JUMP TABLE
@@ -157,8 +157,109 @@ code0001       MOVE.L #$4D4F5645, (A4)+ ** Loads "MOVE" INTO PRINT_BUFFER
                JSR PRINT
                RTS ** Returns to sender **
                
-code0010       STOP        #$2700
-code0011       STOP        #$2700
+code0010       MOVE.L #$4D4F5645, (A4)+ ** Loads "MOVE" INTO PRINT_BUFFER
+
+               MOVE.W D1, D3    *Check the destination mode to see if addressing*
+               AND.L #%0000000111000000, D3 
+               CMPI.L #$0040, D3 ** compares to see if addressing mode
+               BNE.S code0010_cont **branches if destination mode is not addressing register
+               MOVE.W #$412E, (A4)+ **Loads "A." into the print_buffer
+               MOVE.W #$4C09, (A4)+ **Loads "L   " into the print_buffer
+               BRA code0010_cont2 **branches back to code
+               
+               
+code0010_cont  MOVE.L #$2E4C0909, (A4)+ **Loads ".L" into the print_buffer 
+               
+code0010_cont2 CLR.L D2
+               
+               MOVE.W D1, D2
+               AND.L #%0000000000000111, D2 ** checks the source reg number **
+
+               
+               MOVE.W D1, D3
+               AND.L #%0000000000111000, D3 ** checks the source mode type **
+               ASR.W #$3, D3 ** shifts the bits to the right **
+               
+               LEA ea_table, A3 ** loads ea_table for jmp **
+               MULU #6,D3 ** gets the index of the jmp table **
+               
+               JSR 0(A3, D3) ** jumps to the Jump Table **
+               
+               MOVE.W #$2C20, (A4)+
+               
+               CLR D2   ** clears registers for source reg and mode 
+               CLR D3
+               
+               MOVE.W D1, D2
+               AND.L #%0000111000000000, D2 ** checks the register number ***
+               LSR.W #$8, D2 **shifts the bits to the right
+               LSR.B #$1, D2
+               
+               MOVE.W D1, D3
+               AND.L #%0000000111000000, D3 ** checks the addressing mode **
+               LSR.W #$6, D3 ** shifts the bits to the right 
+              
+               
+               LEA ea_table, A3 ** loads the ea_table **
+               MULU #6, D3 ** gets the index of the jump table **
+               
+               JSR 0(A3, D3) **jumps to the ea_table for source dissassembly **
+               MOVE.W #$2000, (A4)+
+               JSR PRINT
+               RTS ** Returns to sender **
+
+code0011       MOVE.L #$4D4F5645, (A4)+ ** Loads "MOVE" INTO PRINT_BUFFER
+
+               MOVE.W D1, D3    *Check the destination mode to see if addressing*
+               AND.L #%0000000111000000, D3 
+               CMPI.L #$0040, D3 ** compares to see if addressing mode
+               BNE.S code0010_cont **branches if destination mode is not addressing register
+               MOVE.W #$412E, (A4)+ **Loads "A." into the print_buffer
+               MOVE.W #$5709, (A4)+ **Loads "W   " into the print_buffer
+               BRA code0011_cont2 **branches back to code
+               
+code0011_cont  MOVE.L #$2E570909, (A4)+ **Loads ".W" into the print_buffer 
+               
+code0011_cont2 CLR.L D2
+               
+               MOVE.W D1, D2
+               AND.L #%0000000000000111, D2 ** checks the source reg number **
+
+               
+               MOVE.W D1, D3
+               AND.L #%0000000000111000, D3 ** checks the source mode type **
+               ASR.W #$3, D3 ** shifts the bits to the right **
+               
+               LEA ea_table, A3 ** loads ea_table for jmp **
+               MULU #6,D3 ** gets the index of the jmp table **
+               
+               JSR 0(A3, D3) ** jumps to the Jump Table **
+               
+               MOVE.W #$2C20, (A4)+
+               
+               CLR D2   ** clears registers for source reg and mode 
+               CLR D3
+               
+               MOVE.W D1, D2
+               AND.L #%0000111000000000, D2 ** checks the register number ***
+               LSR.W #$8, D2 **shifts the bits to the right
+               LSR.B #$1, D2
+               
+               MOVE.W D1, D3
+               AND.L #%0000000111000000, D3 ** checks the addressing mode **
+               LSR.W #$6, D3 ** shifts the bits to the right 
+              
+               
+               LEA ea_table, A3 ** loads the ea_table **
+               MULU #6, D3 ** gets the index of the jump table **
+               
+               JSR 0(A3, D3) **jumps to the ea_table for source dissassembly **
+               MOVE.W #$2000, (A4)+
+               JSR PRINT
+               RTS ** Returns to sender **
+
+
+
 code0100       STOP        #$2700
 code0101       STOP        #$2700
 code0110       STOP        #$2700
@@ -437,6 +538,7 @@ comma dc.b ', ', 0
 *~Font size~10~
 *~Tab type~1~
 *~Tab size~4~
+
 
 *~Font name~Courier New~
 *~Font size~10~
