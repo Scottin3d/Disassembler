@@ -1,0 +1,64 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 5:10:04 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :MOVE.B Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble MOVE.B instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   550
+00000400                            12  TEST
+00000400  1200                      13      MOVE.B    D0,D1
+00000402  1080                      14      MOVE.B    D0,(A0)
+00000404  10C0                      15      MOVE.B    D0,(A0)+
+00000406  1100                      16      MOVE.B    D0,-(A0)
+00000408  1010                      17      MOVE.B    (A0),D0
+0000040A  1290                      18      MOVE.B    (A0),(A1)
+0000040C  12D0                      19      MOVE.B    (A0),(A1)+
+0000040E  1310                      20      MOVE.B    (A0),-(A1)
+00000410  1018                      21      MOVE.B    (A0)+,D0
+00000412  1298                      22      MOVE.B    (A0)+,(A1)
+00000414  12D8                      23      MOVE.B    (A0)+,(A1)+
+00000416  1318                      24      MOVE.B    (A0)+,-(A1)
+00000418  1020                      25      MOVE.B    -(A0),D0
+0000041A  12A0                      26      MOVE.B    -(A0),(A1)
+0000041C  12E0                      27      MOVE.B    -(A0),(A1)+
+0000041E  1320                      28      MOVE.B    -(A0),-(A1)
+00000420                            29      *absolute/ immediate
+00000420  1238 0012                 30      MOVE.B    $12,D1
+00000424  10B8 0012                 31      MOVE.B    $12,(A0)
+00000428  10F8 0012                 32      MOVE.B    $12,(A0)+
+0000042C  1138 0012                 33      MOVE.B    $12,-(A0)
+00000430  1038 1234                 34      MOVE.B    $1234,D0
+00000434  12B8 1234                 35      MOVE.B    $1234,(A1)
+00000438  12F8 1234                 36      MOVE.B    $1234,(A1)+
+0000043C  1338 1234                 37      MOVE.B    $1234,-(A1)
+00000440  1039 12345678             38      MOVE.B    $12345678,D0
+00000446  12B9 12345678             39      MOVE.B    $12345678,(A1)
+0000044C  12F9 12345678             40      MOVE.B    $12345678,(A1)+
+00000452  1339 12345678             41      MOVE.B    $12345678,-(A1)
+00000458  103C 0012                 42      MOVE.B    #$12,D0
+0000045C  12BC 0012                 43      MOVE.B    #$12,(A1)
+00000460  12FC 0012                 44      MOVE.B    #$12,(A1)+
+00000464  133C 0012                 45      MOVE.B    #$12,-(A1)
+00000468                            46  endTEST
+00000468  FFFF FFFF                 47      SIMHALT             ; halt simulator
+0000046C                            48  
+0000046C                            49      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             468
+START               400
+TEST                400

@@ -1,0 +1,73 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 5:31:02 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :MOVE Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble MOVE instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   4E0
+00000400                            12  TEST
+00000400  48A1 007F                 13      MOVEM.W   A1-A7,-(A1)
+00000404  48E1 7F00                 14      MOVEM.L   D1-D7,-(A1)
+00000408  48A1 0140                 15      MOVEM.W   A1/D7,-(A1)
+0000040C  48E1 0140                 16      MOVEM.L   A1/D7,-(A1)
+00000410  4891 FE00                 17      MOVEM.W   A1-A7,(A1)
+00000414  48D1 00FE                 18      MOVEM.L   D1-D7,(A1)
+00000418  4891 0280                 19      MOVEM.W   A1/D7,(A1)
+0000041C  48D1 0280                 20      MOVEM.L   A1/D7,(A1)
+00000420  4C99 FE00                 21      MOVEM.W   (A1)+,A1-A7
+00000424  4CD9 00FE                 22      MOVEM.L   (A1)+,D1-D7
+00000428  4C99 0280                 23      MOVEM.W   (A1)+,A1/D7
+0000042C  4CD9 0280                 24      MOVEM.L   (A1)+,A1/D7
+00000430  4C91 FE00                 25      MOVEM.W   (A1),A1-A7
+00000434  4CD1 00FE                 26      MOVEM.L   (A1),D1-D7
+00000438  4C91 0280                 27      MOVEM.W   (A1),A1/D7
+0000043C  4CD1 0280                 28      MOVEM.L   (A1),A1/D7
+00000440                            29      
+00000440  48B8 FE00 0012            30      MOVEM.W   A1-A7,$12
+00000446  48F8 00FE 0012            31      MOVEM.L   D1-D7,$12
+0000044C  48B8 0280 0012            32      MOVEM.W   A1/D7,$12
+00000452  48F8 0280 0012            33      MOVEM.L   A1/D7,$12
+00000458  48B8 FE00 1234            34      MOVEM.W   A1-A7,$1234
+0000045E  48F8 00FE 1234            35      MOVEM.L   D1-D7,$1234
+00000464  48B8 0280 1234            36      MOVEM.W   A1/D7,$1234
+0000046A  48F8 0280 1234            37      MOVEM.L   A1/D7,$1234
+00000470  48B9 FE00 12345678        38      MOVEM.W   A1-A7,$12345678
+00000478  48F9 00FE 12345678        39      MOVEM.L   D1-D7,$12345678
+00000480  48B9 0280 12345678        40      MOVEM.W   A1/D7,$12345678
+00000488  48F9 0280 12345678        41      MOVEM.L   A1/D7,$12345678
+00000490  4CB8 FE00 0012            42      MOVEM.W   $12,A1-A7
+00000496  4CF8 00FE 0012            43      MOVEM.L   $12,D1-D7
+0000049C  4CB8 0280 0012            44      MOVEM.W   $12,A1/D7
+000004A2  4CF8 0280 0012            45      MOVEM.L   $12,A1/D7
+000004A8  4CB8 FE00 1234            46      MOVEM.W   $1234,A1-A7
+000004AE  4CF8 00FE 1234            47      MOVEM.L   $1234,D1-D7
+000004B4  4CB8 0280 1234            48      MOVEM.W   $1234,A1/D7
+000004BA  4CF8 0280 1234            49      MOVEM.L   $1234,A1/D7
+000004C0  4CB9 FE00 12345678        50      MOVEM.W   $12345678,A1-A7
+000004C8  4CF9 00FE 12345678        51      MOVEM.L   $12345678,D1-D7
+000004D0  4CB9 0280 12345678        52      MOVEM.W   $12345678,A1/D7
+000004D8  4CF9 0280 12345678        53      MOVEM.L   $12345678,A1/D7
+000004E0                            54  
+000004E0                            55  endTEST
+000004E0  FFFF FFFF                 56      SIMHALT             ; halt simulator
+000004E4                            57  
+000004E4                            58      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             4E0
+START               400
+TEST                400

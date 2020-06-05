@@ -1,0 +1,94 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 9:35:48 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :LS(L/R), AS(L/R),ROL(L/R) Test File
+00000000                             3  * Written by :Scott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble LS(L/R), AS(L/R),ROL(L/R)instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   550
+00000400                            12  TEST
+00000400                            13  *register/ address
+00000400  E32A                      14      LSL.B     D1,D2
+00000402  E36A                      15      LSL.W     D1,D2
+00000404  E3D1                      16      LSL.W     (A1)
+00000406  E3D9                      17      LSL.W     (A1)+
+00000408  E3E1                      18      LSL.W     -(A1)
+0000040A  E3AA                      19      LSL.L     D1,D2
+0000040C  E22A                      20      LSR.B     D1,D2
+0000040E  E26A                      21      LSR.W     D1,D2
+00000410  E2D1                      22      LSR.W     (A1)
+00000412  E2D9                      23      LSR.W     (A1)+
+00000414                            24      
+00000414  E2E1                      25      LSR.W     -(A1)
+00000416  E2AA                      26      LSR.L     D1,D2    
+00000418  E222                      27      ASR.B     D1,D2
+0000041A  E262                      28      ASR.W     D1,D2
+0000041C  E0D1                      29      ASR.W     (A1)
+0000041E  E0D9                      30      ASR.W     (A1)+
+00000420  E0E1                      31      ASR.W     -(A1)
+00000422  E2A2                      32      ASR.L     D1,D2
+00000424  E322                      33      ASL.B     D1,D2
+00000426  E362                      34      ASL.W     D1,D2
+00000428                            35      
+00000428  E1D1                      36      ASL.W     (A1)
+0000042A  E1D9                      37      ASL.W     (A1)+
+0000042C  E1E1                      38      ASL.W     -(A1)
+0000042E  E3A2                      39      ASL.L     D1,D2
+00000430  E33A                      40      ROL.B     D1,D2
+00000432  E37A                      41      ROL.W     D1,D2
+00000434  E7D1                      42      ROL.W     (A1)
+00000436  E7D9                      43      ROL.W     (A1)+
+00000438  E7E1                      44      ROL.W     -(A1)
+0000043A  E3BA                      45      ROL.L     D1,D2
+0000043C                            46      
+0000043C  E23A                      47      ROR.B     D1,D2
+0000043E  E27A                      48      ROR.W     D1,D2
+00000440  E6D1                      49      ROR.W     (A1)
+00000442  E6D9                      50      ROR.W     (A1)+
+00000444  E6E1                      51      ROR.W     -(A1)
+00000446  E2BA                      52      ROR.L     D1,D2   
+00000448                            53   *immediate/ absolute
+00000448  E30A                      54      LSL.B     #$1,D2
+0000044A  E54A                      55      LSL.W     #$2,D2
+0000044C  E78A                      56      LSL.L     #$3,D2
+0000044E  E3F8 0012                 57      LSL.W     $12
+00000452                            58      
+00000452  E3F8 1234                 59      LSL.W     $1234
+00000456  E3F9 12345678             60      LSL.W     $12345678
+0000045C  E202                      61      ASR.B     #$1,D2
+0000045E  E442                      62      ASR.W     #$2,D2
+00000460  E682                      63      ASR.L     #$3,D2
+00000462  E0F8 0012                 64      ASR.W     $12
+00000466  E0F8 1234                 65      ASR.W     $1234
+0000046A  E0F9 12345678             66      ASR.W     $12345678
+00000470  E31A                      67      ROL.B     #$1,D2
+00000472  E55A                      68      ROL.W     #$2,D2
+00000474                            69      
+00000474  E79A                      70      ROL.L     #$3,D2
+00000476  E7F8 0012                 71      ROL.W     $12
+0000047A  E7F8 1234                 72      ROL.W     $1234
+0000047E  E7F9 12345678             73      ROL.W     $12345678
+00000484                            74    
+00000484                            75  
+00000484                            76  endTEST
+00000484  FFFF FFFF                 77      SIMHALT             ; halt simulator
+00000488                            78  
+00000488                            79      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             484
+START               400
+TEST                400

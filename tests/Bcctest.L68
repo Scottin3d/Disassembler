@@ -1,0 +1,56 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/04/20 8:02:28 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :MOVE Test File
+00000000                             3  * Written by :SCott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble MOVE instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   42C
+00000400                            12  TEST
+00000400  =00000620                 13  label1  EQU $620
+00000400                            14  
+00000400  =00000740                 15  label2  EQU $740
+00000400                            16  
+00000400  =00000840                 17  label3  EQU $840
+00000400  6400 021E                 18      BCC     label1
+00000404  6400 033A                 19      BCC     label2
+00000408  6E00 0216                 20      BGT     label1
+0000040C  6E00 0332                 21      BGT     label2
+00000410  6F00 020E                 22      BLE     label1
+00000414  6F00 032A                 23      BLE     label2
+00000418  6400 0206                 24      BCC     label1
+0000041C  6400 0322                 25      BCC     label2
+00000420  6400 041E                 26      BCC     label3
+00000424  6E00 01FA                 27      BGT     label1
+00000428  6E00 0316                 28      BGT     label2
+0000042C  6E00 0412                 29      BGT     label3
+00000430  6F00 01EE                 30      BLE     label1
+00000434  6F00 030A                 31      BLE     label2
+00000438  6F00 0406                 32      BLE     label3
+0000043C                            33     
+0000043C                            34  
+0000043C                            35  endTEST
+0000043C  FFFF FFFF                 36      SIMHALT             ; halt simulator
+00000440                            37  
+00000440                            38      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             43C
+LABEL1              620
+LABEL2              740
+LABEL3              840
+START               400
+TEST                400

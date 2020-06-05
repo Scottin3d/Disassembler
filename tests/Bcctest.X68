@@ -8,14 +8,35 @@
 START:                  ; first instruction of program
 
 *start: 400
-*end:   550
+*end:   42C
 TEST
-    
+label1  EQU $620
+
+label2  EQU $740
+
+label3  EQU $840
+    BCC     label1
+    BCC     label2
+    BGT     label1
+    BGT     label2
+    BLE     label1
+    BLE     label2
+    BCC     label1
+    BCC     label2
+    BCC     label3
+    BGT     label1
+    BGT     label2
+    BGT     label3
+    BLE     label1
+    BLE     label2
+    BLE     label3
+   
 
 endTEST
     SIMHALT             ; halt simulator
 
     END    START        ; last line of source
+
 
 *~Font name~Courier New~
 *~Font size~10~
