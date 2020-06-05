@@ -75,7 +75,7 @@ MAIN_LOOP
             
             
             
-            
+            JSR PRINT
             BSR     END *** ENDS THE PROGRAM ***
             
 
@@ -180,11 +180,11 @@ code0110       CLR.L D2
                AND.W #%0000111100000000, D3
                ASR #$8, D3
                CMP #$4, D3
-               JSR BCC
+               BEQ BCC
                CMP #$E, D3
-               JSR BGT
+               BEQ BGT
                CMP #$F, D3
-               JSR BLE
+               BEQ BLE
 code0111       STOP        #$2700
 code1000       STOP        #$2700
 code1001       STOP        #$2700
@@ -204,20 +204,75 @@ BCC
               CLR D3
               MOVE.W D1, D3
               AND.W #%0000000011111111, D3
-              MOVE.L A1, D4
+              MOVE.L A0, D4
               CMP #$00, D3
-              BEQ 
+              BEQ DISP16
               CMP #$FF, D3
+              BEQ DISP32
+              BLT DISP8
+              
+DISP16
+
+              ADD #$2, D4
+              JSR GET_WORD
+              ADD.W D1, D4
+              ** CALL THE ASCII TO HEX FUNCTION **
+              RTS
               
               
-              
+
+DISP32
+              ADD #$2, D4
+              JSR GET_WORD
+              MOVE.W D1, D0
+              ASL.L #$8, D0
+              ASL.L #$8, D0
+              JSR GET_WORD
+              ADD.L D0, D1
+              ADD.L D1, D4
+              ** CALL THE ASCII TO HEX FUNCTION **
+              RTS
+
+DISP8
+              ADD #$2, D4
+              SUB D3, D4
+              ** CALL THE ASCII TO HEX FUNCTION **
+              RTS         
               
               
     
 
 BGT
+              MOVE.B #$42, (A4)+
+              MOVE.B #$47, (A4)+
+              MOVE.B #$54, (A4)+
+              MOVE.B #$09, (A4)+
+              
+              CLR D3
+              MOVE.W D1, D3
+              AND.W #%0000000011111111, D3
+              MOVE.L A0, D4
+              CMP #$00, D3
+              BEQ DISP16
+              CMP #$FF, D3
+              BEQ DISP32
+              BLT DISP8
 
 BLE
+              MOVE.B #$42, (A4)+
+              MOVE.B #$4C, (A4)+
+              MOVE.B #$45, (A4)+
+              MOVE.B #$09, (A4)+
+              
+              CLR D3
+              MOVE.W D1, D3
+              AND.W #%0000000011111111, D3
+              MOVE.L A0, D4
+              CMP #$00, D3
+              BEQ DISP16
+              CMP #$FF, D3
+              BEQ DISP32
+              BLT DISP8
                 
 
 
