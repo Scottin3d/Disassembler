@@ -99,7 +99,7 @@ main_loop   JSR     DECODE         *prep buffer
             BNE     main_next
             ADD     #1, (badInstCount)
 main_next   CMPA.L  A0, A5              * have we reached the end of our address range?
-            BLE     main_end  
+            BLE     dis_yncont 
             
             ADDI    #1, D6              *add counter
             CMP     #printcount, D6     *check loop progress
@@ -107,6 +107,29 @@ main_next   CMPA.L  A0, A5              * have we reached the end of our address
 
 main_cont   JSR     dis_cont
             JMP     main_loop
+            
+            
+**display y/n***********************************************
+dis_yncont  CLR     D1
+            CLR     D2
+            JSR     dis_cr
+            MOVE.B  #task14, D0
+            LEA     str_yncont, A1
+            TRAP    #15
+            
+            MOVE.B  #5, D0           Trap task 4 does the following:
+            TRAP    #15 
+            MOVE.B  D1, D2
+            JSR     dis_cr
+
+            CMP.B   #$59, D2
+            
+            BEQ     main        
+            CMP.B   #$79, D2
+            BEQ     main  
+            
+            JSR     dis_cr
+
 
 main_end    BSR     END
 *===========================================================
@@ -401,7 +424,7 @@ endgop      RTS                         *return
 *Description: Table of OPCODES
 ************************************************************ 
 OP_TABLE
-            JMP         opcode0000      *ANDI
+            JMP         opcode0000      *ADDI*/ANDI*/CMPI*/EORI*/ORI*/SUBI*
             JMP         opcode0001      *MOVE.B 
             JMP         opcode0010      *MOVE/A.L 
             JMP         opcode0011      *MOVE/A.W 
@@ -1098,10 +1121,11 @@ opcode1001:
             MOVE.B  #$41, (A2)+     *'A' to buffer
             MOVE.B  #$2E, (A2)+     *'.' to buffer
             MOVE.W  D7, D3          *move to utility
-            LSR.L   #8, D3          *shift for opmode
-            ANDI.W  #$0001, D3      *isolate 8 to determine size
+            LSR.L   #8, D3          *shift
+            ANDI.W  #$0001, D3      *isolate
             CMP.B   #%1, D3         *long?
-            BEQ     opsubL          *it's a longword
+            BEQ     opsubL          *
+            MOVE.B  #$57, (A2)+     *'W' to buffer
             JMP     opsubSuba
 **SUBA******************************************************            
 opsubL      MOVE.B  #$4C, (A2)+     *'L' to buffer
@@ -1899,22 +1923,6 @@ END:
             TRAP    #15
             
             JSR     dis_cr          *carriage return
-
-**display y/n***********************************************
-dis_yncont  MOVE.B  #task14, D0
-            LEA     str_yncont, A1
-            TRAP    #15
-            
-            MOVE.B  #5, D0           Trap task 4 does the following:
-            TRAP    #15 
-            MOVE.B  D1, D2
-            CMP.B   #$59, D2
-            
-            BEQ     jumpmain   
-            CMP.B   #$79, D2
-            BNE     therealend  
-            JSR     dis_cr
-jumpmain    JMP     main
             
 therealend  MOVE.B  #13,D0          *load end string
             LEA     str_end,A1      *load string
@@ -2002,6 +2010,7 @@ strBadInst      dc.b    '                            ',CR,LF
 
 
     END    START        ; last line of source
+
 
 
 
