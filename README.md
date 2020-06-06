@@ -1,4 +1,4 @@
-# Disassembler
+# 68K Disassembler
 ## Contributors  
 Scott Shirley @scottin3d  
 Carl Howing @cjhowing7  
@@ -64,6 +64,14 @@ For each opcode, we created a test file that we would load the data into our mai
 
 We tracked bad instruction outputs at the top of the file and idicate the bad instruction in-line.  We also note the start and stop of the file in memory for easy use when testing. Each test file tests all required cases for the opcode, separated in groups or registers/address and absolute/immediate data.  
 
+### Bad Instructions
+When the program tries to decode a hex word that is not supported, it will generate a bad instruction.  When a bad instruction is generated, the word is output to the console in the below format.  At the end of the program, it will tell the user how many bad instructions were generated.  
+
+### Example:
+
+```
+$0x0000040A     DATA    $005F
+```
 ### Coding Standards
 When writing code, subroutines should be left justified, followed by the instruction at three tabs.  Comments should be made at nine tabs. Each line does not require a comment, however an asterisk should be placed at nine tabs.  
 
@@ -167,9 +175,17 @@ GitHub: https://github.com/Scottin3d/Disassembler/tree/master/tests
 
 ![Imgur](https://i.imgur.com/sVak8Vn.png)  
 
-
-
 ## Exception Report
+
+### Limitations
+Opcodes & Effective Addresses
+1. This program is limited to the opcode and effective addresses listed above.  While significant testing was done to ensure that the supported codes functioned properly, there is a chance that unspoorted opcodes will not trigger a bad instrction as intended.  
+See above for more detail about bad instructions.  
+
+Ending
+1. If Y/y is not pressed the program will end.  If nothing is entered and return is pressed, the program will end.
+
+### Know Bugs
 
 ## Team Assignments and Report
 We used a spread sheet with tasks and assignments to track progress of our project.  It broke down the project into small tasks which each contributor self-assigning a role. Tasks were marked either "Not Started, In Progress, or Testing".  Once a task had successfully passed a test case, it was marked complete.  
@@ -193,6 +209,6 @@ Project Link: https://docs.google.com/spreadsheets/d/1MeqKPhHo7Z_27Mj2EwtO_A_3y4
 # (3) Demonstration
 
 ## Video Demonstration  
-
-**LINK**  
-
+Video Link: http://www.youtube.com/watch?v=LZHVBtVmlug  
+ 
+[![](http://img.youtube.com/vi/LZHVBtVmlug/0.jpg)](http://www.youtube.com/watch?v=LZHVBtVmlug "68k Disassembler Demo")

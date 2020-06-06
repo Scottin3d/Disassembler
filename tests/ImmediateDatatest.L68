@@ -1,0 +1,112 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 06/06/20 10:17:06 AM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :Immedaite Data Test File
+00000000                             3  * Written by :Scott Shirley
+00000000                             4  * Date       :04 June 2020
+00000000                             5  * Description:Test 68k disassemble Immediate Data instructions
+00000000                             6  *-----------------------------------------------------------
+00000400                             7      ORG    $400
+00000400                             8  START:                  ; first instruction of program
+00000400                             9  
+00000400                            10  *start: 400
+00000400                            11  *end:   42A
+00000400                            12  TEST
+00000400  0601 0012                 13      ADDI.B    #$12,D1
+00000404  0610 0012                 14      ADDI.B    #$12,(A0)
+00000408  0619 0012                 15      ADDI.B    #$12,(A1)+
+0000040C  0622 0012                 16      ADDI.B    #$12,-(A2)
+00000410  0638 0012 1234            17      ADDI.B    #$12,$1234
+00000416  0642 1234                 18      ADDI.W    #$1234,D2
+0000041A  0653 1234                 19      ADDI.W    #$1234,(A3)
+0000041E  065C 1234                 20      ADDI.W    #$1234,(A4)+
+00000422  0665 1234                 21      ADDI.W    #$1234,-(A5)
+00000426  0678 1234 1234            22      ADDI.W    #$1234,$1234
+0000042C  0679 1234 12345678        23      ADDI.W    #$1234,$12345678
+00000434  0683 12345678             24      ADDI.L    #$12345678,D3
+0000043A  0696 12345678             25      ADDI.L    #$12345678,(A6)
+00000440  069E 12345678             26      ADDI.L    #$12345678,(A6)+
+00000446  06A5 12345678             27      ADDI.L    #$12345678,-(A5)
+0000044C  06B8 12345678 1234        28      ADDI.L    #$12345678,$1234
+00000454  06B9 12345678 12345678    29      ADDI.L    #$12345678,$12345678
+0000045E                            30  
+0000045E  0201 000C                 31      ANDI.B    #12,D1
+00000462  0210 000C                 32      ANDI.B    #12,(A0)
+00000466  0218 000C                 33      ANDI.B    #12,(A0)+
+0000046A  0220 000C                 34      ANDI.B    #12,-(A0)
+0000046E  0238 000C 1234            35      ANDI.B    #12,$1234
+00000474  0241 04D2                 36      ANDI.W    #1234,D1
+00000478  0250 04D2                 37      ANDI.W    #1234,(A0)
+0000047C  0258 04D2                 38      ANDI.W    #1234,(A0)+
+00000480  0260 04D2                 39      ANDI.W    #1234,-(A0)
+00000484  0278 04D2 1234            40      ANDI.W    #1234,$1234
+0000048A  0279 04D2 12345678        41      ANDI.W    #1234,$12345678
+00000492  0281 00BC614E             42      ANDI.L    #12345678,D1
+00000498  0290 00BC614E             43      ANDI.L    #12345678,(A0)
+0000049E  0298 00BC614E             44      ANDI.L    #12345678,(A0)+
+Line 45 ERROR: Invalid syntax
+000004A4                            45      ANDI.L    #12345678,-(A0
+000004A4  02B8 00BC614E 1234        46      ANDI.L    #12345678,$1234
+000004AC  02B9 00BC614E 12345678    47      ANDI.L    #12345678,$12345678
+000004B6                            48      
+000004B6  0C01 000C                 49      CMPI.B     #12,D1
+000004BA  0C41 000C                 50      CMPI.W     #12,D1
+000004BE  0C41 04D2                 51      CMPI.W     #1234,D1
+000004C2  0C81 0000000C             52      CMPI.L     #12,D1
+000004C8  0C81 000004D2             53      CMPI.L     #1234,D1
+000004CE  0C81 00BC614E             54      CMPI.L     #12345678,D1
+000004D4  0C81 12345678             55      CMPI.L     #$12345678,D1
+000004DA                            56      
+Line 57 ERROR: Invalid addressing mode
+000004DA                            57      SUBI.B     D1,#12
+Line 58 ERROR: Invalid addressing mode
+000004DA                            58      SUBI.B     D1,#1234
+Line 59 ERROR: Invalid addressing mode
+000004DA                            59      SUBI.B     D1,#12345678
+000004DA  0402 000C                 60      SUBI.B     #12,D2
+Line 61 ERROR: Immediate data exceeds 8 bits
+000004DE  0403 00D2                 61      SUBI.B     #1234,D3
+Line 62 ERROR: Immediate data exceeds 8 bits
+000004E2  0404 004E                 62      SUBI.B     #12345678,D4
+000004E6  0405 000C                 63      SUBI.B     #12,D5
+Line 64 ERROR: Invalid addressing mode
+000004EA                            64      SUBI.W     D6,#12
+Line 65 ERROR: Invalid addressing mode
+000004EA                            65      SUBI.W     D7,#1234
+Line 66 ERROR: Invalid addressing mode
+000004EA                            66      SUBI.W     D3,#2345678
+000004EA  0441 000C                 67      SUBI.W     #12,D1
+000004EE  0441 04D2                 68      SUBI.W     #1234,D1
+Line 69 ERROR: Immediate data exceeds 16 bits
+000004F2  0441 614E                 69      SUBI.W     #12345678,D1
+Line 70 ERROR: Invalid syntax
+000004F6                            70      SUBI.W     ##1234,D1
+Line 71 ERROR: Invalid addressing mode
+000004F6                            71      SUBI.L     D1,#12
+Line 72 ERROR: Invalid addressing mode
+000004F6                            72      SUBI.L     D1,#1234
+Line 73 ERROR: Invalid addressing mode
+000004F6                            73      SUBI.L     D1,#12345678
+000004F6  0482 0000000C             74      SUBI.L     #12,D2
+000004FC  0481 000004D2             75      SUBI.L     #1234,D1
+00000502  0481 00BC614E             76      SUBI.L     #12345678,D1
+00000508  0481 00BC614E             77      SUBI.L     #12345678,D1
+0000050E                            78  
+0000050E                            79  
+0000050E                            80  endTEST
+0000050E  FFFF FFFF                 81      SIMHALT             ; halt simulator
+00000512                            82  
+00000512                            83      END    START        ; last line of source
+
+14 errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ENDTEST             50E
+START               400
+TEST                400
