@@ -48,9 +48,18 @@ This chart outlines the main flow of the disassembler from start to finish.  Ple
 * Absolute Word Addres  
 
 ## Test Plan
+There were 5 phases in our testing plan. We tested the system as we built it up. This was done because newer code relied on a framework to correctly work. Once the framework was tested and debugged. Opcode disassembly code was written and then tested.
+
+1. I/O debugging, making sure that it correctly converted to ASCCI.
+2. EA decoding, being able to correcly output the mode and register used. tested with MOVE.B command. 
+3. Local Opcode testing, once each member wrote the disassembly for the specific opcodes they wrote, testing was done for that specific opcode to make sure that it worked correctly.
+4. Whole System, testing was done on the complete system. All of the local opcode tests were brought together and used in a single test file.
+5. Decoding disassembler, The starting address of the disassembler was used to test that it properly output the correct disassembled instruction aswell as had the correct output for commands that were not meant to dissassemble. 
+
+How testing was conducted:
 For each opcode, we created a test file that we would load the data into our main program before execution.  
 We track bad instruction outputs at the top of the file and idicate the bad instruction in-line.  We also note the start and stop of the file in memory for easy use when testing.  
-Each test file tests alll required cases for the opcode, separated in groups or registers/address and absolute/immediate data.  
+Each test file tests all required cases for the opcode, separated in groups or registers/address and absolute/immediate data.  
 
 ### Coding Standards
 When writing code, subroutines should be left justified, followed by the instruction at three tabs.  Comments should be made at nine tabs.  
@@ -141,7 +150,8 @@ When we integrated each opcode subroutine into the main program, we wrote a test
 * Opcode parsing  
 * Opcode decoding  
 ### Daniel
--Testing  
+* Testing
+* Opcode decoding
 
 
 # (3) Demonstration
