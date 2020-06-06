@@ -34,8 +34,11 @@ This chart outlines the main flow of the disassembler from start to finish.  Ple
 ### Supported Opcodes
 |**O**|**P**|**C**|**O**|**D**|**E**|**S**|
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-|MOVE|MOVEA|MOVEM|ADD|SUB|LEA|AND|  
-|OR|LSL|ASR|CMP|Bcc(BCC, BGT, BLE)|JSR|RTS|
+|MOVE|MOVEA|MOVEM|ADD/A/I*|SUB/A/I*|LEA|AND/A/I|  
+|OR/I|LSL|ASR|CMP/I*|Bcc(BCC, BGT, BLE)|JSR|RTS|
+|ERO/I*|NEG*|NOT*|NOP*|||
+
+*Not required for project
 
 ### Supported Effective Address (EA) Modes  
 * Data Register Direct  
@@ -56,14 +59,13 @@ There were 5 phases in our testing plan. We tested the system as we built it up.
 4. Whole System, testing was done on the complete system. All of the local opcode tests were brought together and used in a single test file.
 5. Decoding disassembler, The starting address of the disassembler was used to test that it properly output the correct disassembled instruction aswell as had the correct output for commands that were not meant to dissassemble. 
 
-How testing was conducted:
+### How Tsting Was Conducted
 For each opcode, we created a test file that we would load the data into our main program before execution.  
-We track bad instruction outputs at the top of the file and idicate the bad instruction in-line.  We also note the start and stop of the file in memory for easy use when testing.  
-Each test file tests all required cases for the opcode, separated in groups or registers/address and absolute/immediate data.  
+
+We tracked bad instruction outputs at the top of the file and idicate the bad instruction in-line.  We also note the start and stop of the file in memory for easy use when testing. Each test file tests all required cases for the opcode, separated in groups or registers/address and absolute/immediate data.  
 
 ### Coding Standards
-When writing code, subroutines should be left justified, followed by the instruction at three tabs.  Comments should be made at nine tabs.  
-Each line does not require a comment, however an asterisk should be placed at nine tabs.  
+When writing code, subroutines should be left justified, followed by the instruction at three tabs.  Comments should be made at nine tabs. Each line does not require a comment, however an asterisk should be placed at nine tabs.  
 
 ### Register Usage
 For continuity, we utilized registers as followed:
@@ -89,15 +91,9 @@ For continuity, we utilized registers as followed:
 |A7|stack|
 
 ### Subroutine Standards
-When writing subroutings, clearity is important.  Coders shoudl be able to tell what the subroutines task is by reading the code as well have imformative comments.  
+When writing subroutings, clearity is important.  Coders should be able to tell what the subroutines task is by reading the code as well have imformative comments.  
 
-1. A solid line of 70 asterisks indicates the start of a subroutine  
-2. The name of the subroutine should be clear and unambigous   
-3. A brief description of what the subroutine accomplishes
-4. The registers utilized in the subroutine, adhering to the usage chart above  
-5. A solid line of 70 asterisks indicates the end of the header
-6. Sub-operations should be indicated with a solid line of 70 asterisks, the the name two (\*\*) from the left  
-7. a solid line of 70 equals indicates the end of a subroutine  
+
 
 ```
 1. **********************************************************************
@@ -106,19 +102,21 @@ When writing subroutings, clearity is important.  Coders shoudl be able to tell 
 4. *Registers Used:
 5. **********************************************************************
 6. **NAME of operation***************************************************
-7. *==============80 Solid equals indicates the end of a subrouting======
+7. *=====================================================================
 ```
-
+1. A solid line of 70 asterisks indicates the start of a subroutine  
+2. The name of the subroutine should be clear and unambigous   
+3. A brief description of what the subroutine accomplishes
+4. The registers utilized in the subroutine, adhering to the usage chart above  
+5. A solid line of 70 asterisks indicates the end of the header
+6. Sub-operations should be indicated with a solid line of 70 asterisks, the the name two (\*\*) from the left  
+7. a solid line of 70 equals indicates the end of a subroutine  
 ### Eample:  
 
 ![Imgur](https://i.imgur.com/c2JiDAH.png) 
 
 ### Jump Tables
 While used seldomly, formatting is important in the use of jump tables.  When writing a jump table, the following formatting guidelines should be followed along with the general coding and subroutine guidelines already eastablished.  
-
-1. Name and description of the jump table
-2. The name of the table should be clear and unambigous and include "table" at the end
-3. The jump routines have a comment idicating what the action is
 
 ```
 1.*0100 SECOND LAYER OPCODE TABLE SUBROUTINES 
@@ -128,33 +126,73 @@ While used seldomly, formatting is important in the use of jump tables.  When wr
             JMP     op0100_0010   *CLR
             JMP     op0100_0011   *BADINST
 ```
+1. Name and description of the jump table
+2. The name of the table should be clear and unambigous and include "table" at the end
+3. The jump routines have a comment idicating what the action is
 ### Example:
 
 ![Imgur](https://i.imgur.com/ERwwPNW.png)
 
-### SUB/A Opcode Test File  
+### Test Files
+Because of how we divided individual contributions to the project, each opcode routine was written separately from the main program.  This allowed us to work on multiple subroutines at a time without conflict in the main program.  
+When we integrated each opcode subroutine into the main program, we wrote a test case for the opcode and tested it extensively to ensure it was integrated properly and functioned as written.  
+
+```
+1.*ERROR REPORT
+  *Memory Address*  *Word Output* *Fixed*
+2.*45A                0012          yes
+
+3.    ORG    $400
+  START:                  
+4.*start: 400
+  *end:   498
+  TEST
+5.*registers/ address
+      SUB.B     D1,D2
+6.*absolute/ immediate
+      SUB.B     #$12,D1       *error
+```
+
+1. Report of errors while decoding the test cases  
+2. Error location, output, and if its been fixed  
+3. All tests start at $400  
+4. Mark file with start and end locations for use  
+5. Included test cases for registers and address if applicable  
+6. Included test cases for absolute and immediate data if applicable  
+
+### List of Test Files
+GitHub: https://github.com/Scottin3d/Disassembler/tree/master/tests  
+
+### Example:  
 
 ![Imgur](https://i.imgur.com/sVak8Vn.png)  
 
-Because of how we divided individual contributions to the project, each opcode routine was written separately from the main program.  This allowed us to work on multiple subroutines at a time without conflict in the main program.  
-When we integrated each opcode subroutine into the main program, we wrote a test case for the opcode and tested it extensively to ensure it was integrated properly and functioned as written.  
 
 
 ## Exception Report
 
 ## Team Assignments and Report
+We used a spread sheet with tasks and assignments to track progress of our project.  It broke down the project into small tasks which each contributor self-assigning a role. Tasks were marked either "Not Started, In Progress, or Testing".  Once a task had successfully passed a test case, it was marked complete.  
+### Project Task Board  
+
+![Imgur](https://i.imgur.com/r88jjpM.png)  
+
+Project Link: https://docs.google.com/spreadsheets/d/1MeqKPhHo7Z_27Mj2EwtO_A_3y4oFlFxuZ0nDk8N5tSQ/edit?usp=sharing
 ### Scott
 * I/O  
-* ASCII to HEX conversion  
-### Carl
-* Opcode parsing  
-* Opcode decoding  
-### Daniel
+* Helper Subroutines 
+* Opcodes
+* EA
 * Testing
+### Carl
+* Opcodes  
+* EA 
+* Operational Direction
+### Daniel
 * Opcode decoding
-
-
 # (3) Demonstration
+
 ## Video Demonstration  
+
 **LINK**  
 
